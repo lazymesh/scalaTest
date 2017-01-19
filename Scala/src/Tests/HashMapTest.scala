@@ -1,3 +1,5 @@
+package src.Tests
+
 import scala.collection.immutable.HashMap
 
 /**
