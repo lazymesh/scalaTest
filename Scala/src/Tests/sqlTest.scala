@@ -1,8 +1,7 @@
 package src.Tests
 
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
-import src.Tests.Main.Table
+import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by ramaharjan on 1/19/17.

@@ -8,8 +8,10 @@ import java.util.Scanner
 
 import jdk.nashorn.api.scripting.JSObject
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.catalyst.ScalaReflection.Schema
+import org.apache.spark.sql.types._
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql.{Row, SQLContext, SparkSession}
 
 import scala.io.Source
 
@@ -21,46 +23,54 @@ object Main {
     val conf = new SparkConf().setAppName("Simple Application").setMaster("local")
     val sc = new SparkContext(conf)
 
-//    layoutTable(sc, layoutFile)
-    jsonParser()
 
-    /*    sc.hadoopConfiguration.set("textinputformat.record.delimiter","^*~")
-        val logData = sc.textFile(sourceFile)
 
-        val rddData = logData.map(_.split("\\^%~"))
-        val rowRDD = sc.parallelize(Seq(rddData))
-
-        val layoutData = sc.textFile(layoutFile)
-        val sQLContext = new SQLContext(sc)
-        import sQLContext.implicits._
-        val layout = layoutData.flatMap(_.split(";")).toJavaRDD()
-    //    layout.foreach(print)
-    //    val reqLayout = layout.
-        for(layoutLine <- layout){
-          print(layoutLine)
-        }*/
     sc.stop()
   }
 
-  case class layout(sn : String, name1 : String, name2:String, name3:String, dType:String, parent:String, format:String)
-  def layoutTable(sc : SparkContext, file : String): Unit ={
+  def readData(sc : SparkContext, dataFile : String, layoutFile : String): Unit ={
+    sc.hadoopConfiguration.set("textinputformat.record.delimiter","^*~")
+    val inputLines = sc.textFile(dataFile)
+
+    val schemas = dynamicSchema(sc, layoutFile)
+    val rowFields = inputLines.map{line => line.split("\\^%~")}
+    var addrows
+    for(schema <- schemas; field <- rowFields){
+
+    }
+
+//    val rowRdd = inputLines.map{array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => convertTypes(value, struct) })}
+
+//    val sqlContext = new SQLContext(sc)
+//    val df = sqlContext.createDataFrame(rowRdd, schema)
+//    df.show()
+  }
+
+  def dynamicSchema(sc : SparkContext, file : String): RDD[StructType] ={
     val readData = sc.textFile(file).filter(!_.startsWith("#"))
-    convertJson(readData)
-    val mapData = readData.map(x=>x.split(";", -1)).map {y => layout(y(0), y(1), y(2), y(3), y(4), y(5), y(6))}
-    val sQLContext = new SQLContext(sc)
-    import sQLContext.implicits._
-    val dsData = mapData.toDS()
-    val scrubName = dsData.select("name1", "dType")
-    val dataType = dsData.select("dType")
-    for(scrub <- scrubName.rdd){
-//      println(scrub(0).toString.replace("\"", "").trim+" : "+scrub(1).toString.replace("\"", "").trim)
+    val schema = readData.map(x=>x.split(";", -1)).map {value => StructType(Seq(StructField(value(1), dataType(value(4)))))}
+    schema
+  }
+
+  def dataType(dataType : String) : DataType ={
+    if(dataType.equalsIgnoreCase("int")){
+      IntegerType
+    }
+    else if(dataType.equalsIgnoreCase("date")){
+      DateType
+    }
+    else if(dataType.equalsIgnoreCase("float")){
+      FloatType
+    }
+    else if(dataType.equalsIgnoreCase("double")){
+      DoubleType
+    }
+    else{
+      StringType
     }
   }
 
-  def convertJson(data : RDD[String]): Unit ={
-//    def jsonData = data.map(x =>x.split(";", -1)).map(kv => {JsObject(List(kv(1) -> kv(4)))})
-//    println(jsonData)
-  }
+
 
   def jsonParser(): Unit ={
     import scala.util.parsing.json._
