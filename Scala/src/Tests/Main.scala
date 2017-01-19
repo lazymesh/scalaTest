@@ -23,7 +23,7 @@ object Main {
     val conf = new SparkConf().setAppName("Simple Application").setMaster("local")
     val sc = new SparkContext(conf)
 
-
+    dynamicSchema(sc, layoutFile)
 
     sc.stop()
   }
@@ -34,10 +34,10 @@ object Main {
 
     val schemas = dynamicSchema(sc, layoutFile)
     val rowFields = inputLines.map{line => line.split("\\^%~")}
-    var addrows
-    for(schema <- schemas; field <- rowFields){
+//    var addrows
+//    for(schema <- schemas; field <- rowFields){
 
-    }
+//    }
 
 //    val rowRdd = inputLines.map{array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => convertTypes(value, struct) })}
 
@@ -46,10 +46,13 @@ object Main {
 //    df.show()
   }
 
-  def dynamicSchema(sc : SparkContext, file : String): RDD[StructType] ={
+  def dynamicSchema(sc : SparkContext, file : String): StructType ={
     val readData = sc.textFile(file).filter(!_.startsWith("#"))
-    val schema = readData.map(x=>x.split(";", -1)).map {value => StructType(Seq(StructField(value(1), dataType(value(4)))))}
-    schema
+    val schema = readData.map(x=>x.split(";", -1)).map {value => StructField(value(1), dataType(value(4)))}
+    val structType = StructType(schema.collect().toSeq)
+//    structType.foreach(println)
+    println(structType.prettyJson)
+    structType
   }
 
   def dataType(dataType : String) : DataType ={

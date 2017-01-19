@@ -1,8 +1,7 @@
 package src.Tests
 
-import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
-import src.Tests.Main.layout
+import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by ramaharjan on 1/19/17.
