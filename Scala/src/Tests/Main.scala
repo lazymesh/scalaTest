@@ -32,18 +32,16 @@ object Main {
     sc.hadoopConfiguration.set("textinputformat.record.delimiter","^*~")
     val inputLines = sc.textFile(dataFile)
 
-    val schemas = dynamicSchema(sc, layoutFile)
-    val rowFields = inputLines.map{line => line.split("\\^%~")}
-//    var addrows
-//    for(schema <- schemas; field <- rowFields){
+    val schema = dynamicSchema(sc, layoutFile)
+    val rowFields = inputLines.map{line => line.split("\\^%~")}.map{ array => Row.fromSeq(array)}
+    val arrayList = sc.parallelize(Array(Array("1","This is a line for testing", "third1"), Array("2","The second line", "third2")))
+    val rowRdd = arrayList.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => convertTypes(value, struct) })}
+    //    val arrayFields = sc.parallelize(Array(rowFields.toLocalIterator))
+    //    val rowRdd = arrayFields.map{ array => Row.fromSeq(Seq(array))}
 
-//    }
-
-//    val rowRdd = inputLines.map{array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => convertTypes(value, struct) })}
-
-//    val sqlContext = new SQLContext(sc)
-//    val df = sqlContext.createDataFrame(rowRdd, schema)
-//    df.show()
+    val sqlContext = new SQLContext(sc)
+    val df = sqlContext.createDataFrame(rowFields, dynamicSchema(sc, layoutFile))
+    df.show()
   }
 
   def dynamicSchema(sc : SparkContext, file : String): StructType ={
