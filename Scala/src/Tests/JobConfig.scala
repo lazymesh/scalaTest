@@ -2,7 +2,6 @@ package src.Tests
 
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
-import src.Tests.Main.layout
 
 /**
   * Created by ramaharjan on 1/19/17.
