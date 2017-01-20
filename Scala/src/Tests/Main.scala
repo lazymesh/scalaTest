@@ -5,7 +5,7 @@ package src.Tests
   */
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SQLContext}
+import org.apache.spark.sql._
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.functions.udf
 
@@ -33,19 +33,14 @@ object Main {
     val goldenRuleDataSet = goldenRuleDS(sqlContext, goldenRuleRdd)
 
     eligibilityTable.withColumn("mbr_dob", udfScoreToCategory(eligibilityTable("mbr_dob"), goldenRuleDataSet("field", "firstValue", "secondValue"))).show
-    // df.withColumn("mbr_relationship_code")
-    // df.show()
 
-
-
-//    eligibilityTable.withColumn("mbr_dob", when(col("mbr_dob").equalTo("Tesla"), "S") )
     eligibilityTable.collect().foreach(println)
 
     sc.stop()
   }
 
-  def udfScoreToCategory = udf((score: Int, goldenRule: DataFrame) => {score match {
-    case t if t >= 80 => "A"
+  def udfScoreToCategory = udf((score: Column, goldenRule: Column) => {score match {
+    case t if goldenRule.getField("field") >= 80 => "A"
     case t if t >= 60 => "B"
     case t if t >= 35 => "C"
     case _ => "D"
