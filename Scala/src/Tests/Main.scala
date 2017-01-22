@@ -3,58 +3,49 @@ package src.Tests
 /**
   * Created by ramaharjan on 1/18/17.
   */
+import Scala.src.Tests.GoldenRules
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.types._
 import org.apache.spark.sql._
+import org.apache.spark.sql.types._
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.functions.udf
+
 
 object Main {
+  var eoc : String = "2016-12-31"
+  var clientType : String = "Medicaid"
   def main(args: Array[String]) {
-    val sourceFile = "file:/home/ramaharjan/bugs/110054/elig.csv"
-    val layoutFile = "file:/home/ramaharjan/bugs/110054/eligibilityLayout.csv"
-    val eligibilityGoldenRule = "file:/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/eligibilityGolderRule.csv"
+    val sourceFile = "file:/home/anahcolus/IdeaProjects/scalaTest/data/elig.csv"
+    val layoutFile = "file:/home/anahcolus/IdeaProjects/scalaTest/data/eligibilityLayout.csv"
     val conf = new SparkConf().setAppName("Simple Application").setMaster("local")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    val goldenRuleRdd = sc.textFile(eligibilityGoldenRule)
-
     val layoutDataRdd = sc.textFile(layoutFile)
-    val schema = dynamicSchema(sc, layoutFile)
 
+    val schema = dynamicSchema(sc, layoutFile)
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
+
     val sourceDataRdd = sc.textFile(sourceFile)
 
-//    case class eligibility(schema : StructType)
+    val eligibilityTable = eligDataFrame(sc, sqlContext, sourceDataRdd, schema)
 
-    val eligibilityTable = dataFrame(sc, sqlContext, sourceDataRdd, schema)
+    eoc = "2015-12-31"
+    clientType = "Medicaid"
+    GoldenRules.eoc = eoc
+    GoldenRules.clientType = clientType
 
-    val goldenRuleDataSet = goldenRuleDS(sqlContext, goldenRuleRdd)
-
-    eligibilityTable.withColumn("mbr_dob", udfScoreToCategory(eligibilityTable("mbr_dob"), goldenRuleDataSet("field", "firstValue", "secondValue"))).show
-
-    eligibilityTable.collect().foreach(println)
+    val dobChanged =eligibilityTable.withColumn("mbr_dob", GoldenRules.eligGoldenRuleDOB(eligibilityTable("mbr_dob"),eligibilityTable("mbr_relationship_class")))
+    val relationshipCodeChanged = dobChanged.withColumn("mbr_relationship_code", GoldenRules.eligGoldenRuleRelationshipCode(dobChanged("mbr_dob")))
+    relationshipCodeChanged.withColumn("mbr_relationship_desc", GoldenRules.eligGoldenRuleRelationshipDesc(relationshipCodeChanged("mbr_relationship_code")))
+      .withColumn("mbr_relationship_class", GoldenRules.eligGoldenRuleRelationshipDesc(relationshipCodeChanged("mbr_relationship_code")))
+      .withColumn("mbr_gender", GoldenRules.eligGoldenRuleGender(relationshipCodeChanged("mbr_gender")))
+      .withColumn("ins_med_eff_date", GoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_eff_date")))
+      .withColumn("ins_med_term_date", GoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_term_date"))).show
 
     sc.stop()
   }
 
-  def udfScoreToCategory = udf((score: Column, goldenRule: Column) => {score match {
-    case t if goldenRule.getField("field") >= 80 => "A"
-    case t if t >= 60 => "B"
-    case t if t >= 35 => "C"
-    case _ => "D"
-  }})
-
-  case class GoldenRule(field : String, firstValue : String, SecondValue : String)
-  def goldenRuleDS(sQLContext: SQLContext, goldenRuleLines : RDD[String]) : DataFrame = {
-    val goldenRules = goldenRuleLines.map(line=>line.split(";", -1)).map {v => GoldenRule(v(0), v(1), v(2))}
-    import sQLContext.implicits._
-    goldenRules.toDF()
-  }
-
-
-  def dataFrame(sc : SparkContext, sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
+  def eligDataFrame(sc : SparkContext, sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
     val rowFieldsTest = inputLines.map{line => line.split("\\^%~")}
     val rowFields = inputLines.map{line => line.split("\\^%~", -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => convertTypes(value, struct) })}
 
@@ -69,7 +60,7 @@ object Main {
     val readData = sc.textFile(file).filter(!_.startsWith("#"))
     val schema = readData.map(x=>x.split(";", -1)).map {value => StructField(value(1), dataType(value(4)))}
     val structType = StructType(schema.collect().toSeq)
-//    println(structType.prettyJson)
+    //    println(structType.prettyJson)
     structType
   }
 
@@ -119,7 +110,7 @@ object Main {
       if (!value.toString.matches(Patterns.INT_PATTERN)) {
         throw new RuntimeException("Invalid format for field: " + struct.name + " Type: " + struct.dataType + " Value: " + value)
       }
-    } else if ("float".equals(struct.dataType)) {
+    } else if (FloatType.equals(struct.dataType)) {
       if (!value.toString.matches(Patterns.FLOAT_PATTERN)) {
         throw new RuntimeException("Invalid format for field: " + struct.name + " Type: " + struct.dataType + " Value: " + value)
       }
