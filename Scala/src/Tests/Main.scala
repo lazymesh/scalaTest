@@ -3,34 +3,52 @@ package src.Tests
 /**
   * Created by ramaharjan on 1/18/17.
   */
+import java.io.{ByteArrayOutputStream, ObjectOutputStream}
+import java.util
+
 import Scala.src.Tests.GoldenRules
+import cascading.tuple.hadoop.TupleSerializationProps
+import cascading.tuple.{Tuple, Tuples}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import org.apache.spark.{SparkConf, SparkContext}
+
+import scala.collection.mutable.ArrayBuffer
 
 
 object Main {
   var eoc : String = "2016-12-31"
   var clientType : String = "Medicaid"
   def main(args: Array[String]) {
-    val sourceFile = "file:/home/anahcolus/IdeaProjects/scalaTest/data/elig.csv"
-    val layoutFile = "file:/home/anahcolus/IdeaProjects/scalaTest/data/eligibilityLayout.csv"
+    val clientConfigFile = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/client_config.properties"
+    val jobConfigFile = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/validation_eligibility.jobcfg"
+
+    val clientConfigProps = LoadProperties.readPropertiesToMap(clientConfigFile)
+    val jobConfigProps = LoadProperties.readPropertiesToMap(jobConfigFile)
+
+    val sourceFile = jobConfigProps("inputFile")
+    val outputFile = jobConfigProps("outputDirectory")
+    val sourceLayoutFile = jobConfigProps("layoutFile")
+
+    clientType = clientConfigProps("clientType")
+    eoc = clientConfigProps("cycleEndDate")
+
     val conf = new SparkConf().setAppName("Simple Application").setMaster("local")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-    val layoutDataRdd = sc.textFile(layoutFile)
+    val layoutDataRdd = sc.textFile(sourceLayoutFile)
 
-    val schema = dynamicSchema(sc, layoutFile)
+    val schema = dynamicSchema(sc, sourceLayoutFile)
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
 
     val sourceDataRdd = sc.textFile(sourceFile)
 
     val eligibilityTable = eligDataFrame(sc, sqlContext, sourceDataRdd, schema)
 
-    eoc = "2015-12-31"
-    clientType = "Medicaid"
     GoldenRules.eoc = eoc
     GoldenRules.clientType = clientType
 
@@ -42,7 +60,36 @@ object Main {
       .withColumn("ins_med_eff_date", GoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_eff_date")))
       .withColumn("ins_med_term_date", GoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_term_date"))).show
 
+    val eligRDD = relationshipCodeChanged.rdd
+
+    val eligibilityOutput = eligRDD
+        .map(row => row.toString().split(","))
+          .map(v => (Tuple.NULL, new Tuple(serialise(v))))
+      .saveAsNewAPIHadoopFile(outputFile, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], getHadoopConf)
+
+
+/*val intRDD = rdd.map(tuple => tuple.getString(2))
+  .distinct()
+  .zipWithUniqueId()
+  .map(kv => (Tuple.NULL, new Tuple(kv._1.toString, kv._2.toString)))
+  .saveAsNewAPIHadoopFile(absoluteOutputPathIntMem, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], hadoopConf)
+*/
     sc.stop()
+  }
+
+  def serialise(value: Any): Array[Byte] = {
+    val stream: ByteArrayOutputStream = new ByteArrayOutputStream()
+    val oos = new ObjectOutputStream(stream)
+    oos.writeObject(value)
+    oos.close
+    stream.toByteArray
+  }
+
+  def getHadoopConf(): Configuration = {
+    val hadoopConf = new Configuration();
+    hadoopConf.set(TupleSerializationProps.HADOOP_IO_SERIALIZATIONS, "cascading.tuple.hadoop.TupleSerialization,org.apache.hadoop.io.serializer.WritableSerialization")
+    hadoopConf.set("textinputformat.record.delimiter", "^*~")
+    hadoopConf
   }
 
   def eligDataFrame(sc : SparkContext, sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
@@ -52,7 +99,7 @@ object Main {
     val sqlContext = new SQLContext(sc)
     val df = sqlContext.createDataFrame(rowFields, schema)
 
-    df.show()
+//    df.show()
     df
   }
 
