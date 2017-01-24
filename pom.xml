@@ -19,6 +19,10 @@
             <name>Spark sql Maven2 Repository</name>
             <url>https://mvnrepository.com/artifact/org.apache.spark/spark-sql_2.11</url>
         </repository>
+        <repository>
+            <id>conjars.org</id>
+            <url>http://conjars.org/repo</url>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
@@ -95,12 +99,12 @@
         <dependency>
             <groupId>cascading</groupId>
             <artifactId>cascading-core</artifactId>
-            <version>2.6.0</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>cascading</groupId>
             <artifactId>cascading-hadoop</artifactId>
-            <version>2.6.0</version>
+            <version>3.1.0</version>
         </dependency>
     </dependencies>
 

@@ -8,6 +8,7 @@ layoutFile          = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaT
 inputFile           = /home/ramaharjan/pa/DasBackend/SparkEngine/data/elig.csv
 recordType          = Eligibility
 outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/Eligibility
+outputIntMemberId     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/IntegerMemberId
 trapDirectory       = traps/layout/Eligibility
 clientConfigFile    = client_config.properties
 
