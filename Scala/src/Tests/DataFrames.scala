@@ -5,16 +5,18 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 import org.apache.spark.sql.types._
 
+import scala.io.Source
+
 /**
   * Created by ramaharjan on 1/24/17.
   */
 object DataFrames {
 
   //schema generating function reading from layout file
-  def dynamicSchema(sc : SparkContext, file : String): StructType ={
-    val readData = sc.textFile(file).filter(!_.startsWith("#"))
+  def dynamicSchema(file : String): StructType ={
+    val readData = Source.fromFile(file).getLines().filter(!_.startsWith("#"))
     val schema = readData.map(x=>x.split(";", -1)).map {value => StructField(value(1), dataType(value(4)))}
-    val structType = StructType(schema.collect().toSeq)
+    val structType = StructType(schema.toSeq)
     //    println(structType.prettyJson)
     structType
   }

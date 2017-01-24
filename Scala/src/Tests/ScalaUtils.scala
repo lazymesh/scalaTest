@@ -22,4 +22,10 @@ object ScalaUtils {
     hadoopConf.set("textinputformat.record.delimiter", "^*~")
     hadoopConf
   }
+
+  def getResourceFilePath(fileName: String): String = {
+    val url = ScalaUtils.getClass.getClassLoader.getResource(fileName)
+    val name = url.toString.replace("file:/", "/")
+    name.replace("jar:", "")
+  }
 }

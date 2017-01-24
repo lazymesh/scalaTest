@@ -20,6 +20,8 @@ object Main {
   var clientType : String = ""
 
   def main(args: Array[String]) {
+
+    val clientId = args(0)+"/"
     //reading clientConfig
     val clientConfigFile = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/client_config.properties"
     //reading jobconfig for input output recordtypes etc
@@ -30,21 +32,21 @@ object Main {
     val jobConfigProps = LoadProperties.readPropertiesToMap(jobConfigFile)
 
     //defining variables
-    val sourceFile = jobConfigProps("inputFile")
-    val outputFile = jobConfigProps("outputDirectory")
-    val outputFileIntMemberId = jobConfigProps("outputIntMemberId")
-    val sourceLayoutFile = jobConfigProps("layoutFile")
+    val sourceFile = clientId + jobConfigProps("inputFile")
+    val outputFile = clientId + jobConfigProps("outputDirectory")
+    val outputFileIntMemberId = clientId + jobConfigProps("outputIntMemberId")
+    val sourceLayoutFile = clientId + jobConfigProps("layoutFile")
 
     clientType = clientConfigProps("clientType")
     eoc = clientConfigProps("cycleEndDate")
 
     //spark configurations
-    val conf = new SparkConf().setAppName("Simple Application").setMaster("local")
+    val conf = new SparkConf().setAppName("Simple Application")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
     //schema generation for the input source
-    val schema = DataFrames.dynamicSchema(sc, sourceLayoutFile)
+    val schema = DataFrames.dynamicSchema(sourceLayoutFile)
 
     //defining line delimiter for source files
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
