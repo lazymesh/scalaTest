@@ -1,4 +1,4 @@
-package src.Tests
+package officework
 
 import cascading.tuple.hadoop.TupleSerializationProps
 import org.apache.hadoop.conf.Configuration

@@ -1,11 +1,8 @@
-package src.Tests
+package officework
 
 /**
   * Created by ramaharjan on 1/18/17.
   */
-import java.util
-
-import Scala.src.Tests.GoldenRules
 import cascading.tuple.{Tuple, Tuples}
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.sql._
@@ -75,7 +72,7 @@ object Main {
     val eligRDD = relationshipCodeChanged.rdd.map(row => row.toString())
     val eligibilityOutput = eligRDD
         .map(row => row.toString().split(",").toList.asJava)
-        .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[util.List[AnyRef]])))
+        .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
         .saveAsNewAPIHadoopFile(outputFile, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
 
     //integer member id output

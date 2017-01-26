@@ -1,5 +1,3 @@
-package src.Tests;
-
 /**
  * Created by ramaharjan on 1/24/17.
  */

@@ -1,4 +1,4 @@
-package src.Tests
+package Tests
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
