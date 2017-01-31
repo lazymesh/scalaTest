@@ -32,10 +32,10 @@ object DataFrames {
   def dataType(dataType : String) : DataType ={
     if(dataType.equalsIgnoreCase("int")){
       IntegerType
-    }/*
+    }
     else if(dataType.equalsIgnoreCase("date")){
       DateType
-    }*/
+    }
     else if(dataType.equalsIgnoreCase("float")){
       FloatType
     }

@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfterEach, FunSuite}
 /**
   * Created by ramaharjan on 1/26/17.
   */
-class GoldenRulesTest extends FunSuite with BeforeAndAfterEach {
+class GoldenRules$Test extends FunSuite with BeforeAndAfterEach {
 
   override def beforeEach() {
 

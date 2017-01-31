@@ -5,7 +5,7 @@
 #
 #--------------- Mandatory --------------------------
 layoutFile          = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/eligibilityLayout.csv
-inputFile           = /home/ramaharjan/pa/DasBackend/SparkEngine/data/elig.csv
+inputFile           = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/elig.csv
 recordType          = Eligibility
 outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/Eligibility
 outputIntMemberId     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/IntegerMemberId

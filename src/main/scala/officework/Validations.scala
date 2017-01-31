@@ -10,10 +10,10 @@ object Validations {
   def convertTypes(value: String, struct: StructField): Any = struct.dataType match {
     case DoubleType => if(!value.isEmpty && formatValidator(value, struct)) value.toDouble else null
     case FloatType => if(!value.isEmpty && formatValidator(value, struct)) value.toFloat else null
-    case DateType => value
+    case DateType => if(!value.isEmpty && formatValidator(value, struct)) java.sql.Date.valueOf(value.toString) else null
     case IntegerType => if(!value.isEmpty && formatValidator(value, struct)) value.toInt else null
     case LongType => if(!value.isEmpty && formatValidator(value, struct)) value.toLong else null
-    case _ => if(!value.isEmpty && formatValidator(value, struct)) value else null
+    case _ => if(!value.isEmpty && formatValidator(value, struct)) value else ""
   }
 
   def formatValidator(value : String, struct: StructField) : Boolean = {
