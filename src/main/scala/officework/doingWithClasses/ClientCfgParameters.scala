@@ -5,19 +5,14 @@ package main.scala.officework.doingWithClasses
   */
 class ClientCfgParameters(clientConfigFile : String) {
 
-  private var eoc = ""
-  private var clientType = ""
-
   val loadProperties = new LoadProperties
   val clientConfigProps = loadProperties.readPropertiesToMap(clientConfigFile)
 
   def getEOC() : String = {
-    eoc = clientConfigProps("cycleEndDate")
-    eoc
+    clientConfigProps("cycleEndDate")
   }
 
   def getClientType(): String ={
-    clientType = clientConfigProps("clientType")
-    clientType
+    clientConfigProps("clientType")
   }
 }
