@@ -1,11 +1,12 @@
-package officework
+package main.scala.officework.doingWithClasses
 
+import officework.Patterns
 import org.apache.spark.sql.types._
 
 /**
-  * Created by ramaharjan on 1/24/17.
+  * Created by ramaharjan on 2/1/17.
   */
-object Validations {
+class Validators extends scala.Serializable{
 
   def convertTypes(value: String, struct: StructField): Any = struct.dataType match {
     case DoubleType => if(!value.isEmpty && formatValidator(value, struct)) value.toDouble else null

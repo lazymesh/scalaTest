@@ -1,4 +1,4 @@
-package officework
+package main.scala.officework.doingWithObjects
 
 import org.apache.spark.sql.functions.udf
 
@@ -20,7 +20,7 @@ object GoldenRules {
     else dob
   )
 
-  def eligGoldenRuleRelationshipCode = udf((dob: String) =>
+  def eligGoldenRuleRelationshipCode = udf((relationshipCode: String, dob: String) =>
     if(DateUtils.getAge(eoc, dob) > 26 || clientType.equalsIgnoreCase("medicaid") || clientType.equalsIgnoreCase("medicare")){
       "E"
     }

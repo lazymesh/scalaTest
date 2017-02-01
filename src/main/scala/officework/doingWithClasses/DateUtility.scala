@@ -1,13 +1,13 @@
-package officework
+package main.scala.officework.doingWithClasses
 
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
 /**
-  * Created by anahcolus on 1/22/17.
+  * Created by ramaharjan on 2/1/17.
   */
-object DateUtils {
+class DateUtility extends scala.Serializable{
   val stringInputFormat = new SimpleDateFormat("yyyy-MM-dd")
 
   def convertStringToLong(inputDate : String): Long ={
@@ -27,9 +27,9 @@ object DateUtils {
 
   def getAge(referenceDate : String, dob : String): Int ={
     val reference = Calendar.getInstance()
-      reference.setTime(new Date(convertStringToLong(referenceDate)))
+    reference.setTime(new Date(convertStringToLong(referenceDate)))
     val dobDate = Calendar.getInstance()
-      dobDate.setTime(new Date(convertStringToLong(dob)))
+    dobDate.setTime(new Date(convertStringToLong(dob)))
     if (dobDate.getTimeInMillis > reference.getTimeInMillis) {
       throw new IllegalArgumentException("Can't be born in the future");
     }

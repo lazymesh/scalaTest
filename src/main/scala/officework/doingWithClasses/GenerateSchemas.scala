@@ -1,15 +1,13 @@
-package officework
+package main.scala.officework.doingWithClasses
 
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 
 import scala.io.Source
 
 /**
-  * Created by ramaharjan on 1/24/17.
+  * Created by ramaharjan on 2/1/17.
   */
-object DataFrames {
+class GenerateSchemas {
 
   //schema generating function reading from layout file
   def dynamicSchema(file : String): StructType ={
@@ -18,14 +16,6 @@ object DataFrames {
     val structType = StructType(schema.toSeq)
     //    println(structType.prettyJson)
     structType
-  }
-
-  //dataframe generation from input source using the schema generated
-  def eligDataFrame(sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
-    val rowFields = inputLines.map{line => line.split("\\^%~", -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => Validations.convertTypes(value, struct) })}
-    val df = sqlContext.createDataFrame(rowFields, schema)
-    //    df.show()
-    df
   }
 
   //defining data type for schema according to layout

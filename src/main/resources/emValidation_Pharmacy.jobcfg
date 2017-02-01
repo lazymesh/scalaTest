@@ -1,0 +1,15 @@
+#Description : EM Validation Job Configuration file for Pharmacy validation
+#jobName : emValidation
+#
+#$HADOOP jar $JAR -job emValidation -clientId $clientId -input /user/hdfs/$clientId/input/claims/Pharmacy.csv -output /user/hdfs/$clientId/Pharmacy/ --recordType Pharmacy --layout pharmacyLayout.csv --configFile classPath:config/client_config.properties
+#
+#--------------- Mandatory --------------------------
+inputLayoutFile     = pharmacyLayout.csv
+inputFile           = input/claims/Pharmacy
+recordType          = Pharmacy
+outputDirectory     = Pharmacy
+trapDirectory       = traps/layout/Pharmacy
+clientConfigFile    = client_config.properties
+
+#--------------- Optional --------------------------
+#dotFile            = dot/emValidation_Pharmacy.dot

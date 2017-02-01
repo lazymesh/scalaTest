@@ -1,13 +1,12 @@
-package officework
+package main.scala.officework.doingWithObjects
 
 /**
   * Created by ramaharjan on 1/18/17.
   */
 import cascading.tuple.{Tuple, Tuples}
-import main.scala.officework.EligibilityGoldenRules
+import main.scala.officework.ScalaUtils
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.sql._
-import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.JavaConverters._
 
@@ -18,9 +17,9 @@ object Main {
 
 //    val clientId = args(0)+"/"
     //reading clientConfig
-    val clientConfigFile = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/client_config.properties"
+    val clientConfigFile = "/client_config.properties"
     //reading jobconfig for input output recordtypes etc
-    val jobConfigFile = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/validation_eligibility.jobcfg"
+    val jobConfigFile = "/validation_eligibility.jobcfg"
 
     //loading the properties to map
     val clientConfigProps = LoadProperties.readPropertiesToMap(clientConfigFile)
@@ -54,17 +53,17 @@ object Main {
     //data frame generation for input source
     val eligibilityTable = DataFrames.eligDataFrame(sqlContext, sourceDataRdd, schema)
 
-      var eligGoldenRules = new EligibilityGoldenRules(eoc, clientType)
-
+      GoldenRules.eoc=eoc
+      GoldenRules.clientType=clientType
     //applying golden rules
     //todo find efficient way for applying the rules
-    val dobChanged =eligibilityTable.withColumn("mbr_dob", eligGoldenRules.eligGoldenRuleDOB(eligibilityTable("mbr_dob"),eligibilityTable("mbr_relationship_class")))
-    val relationshipCodeChanged = dobChanged.withColumn("mbr_relationship_code", eligGoldenRules.eligGoldenRuleRelationshipCode(dobChanged("mbr_relationship_code"), dobChanged("mbr_dob")))
-    relationshipCodeChanged.withColumn("mbr_relationship_desc", eligGoldenRules.eligGoldenRuleRelationshipDesc(relationshipCodeChanged("mbr_relationship_code")))
-      .withColumn("mbr_relationship_class", eligGoldenRules.eligGoldenRuleRelationshipDesc(relationshipCodeChanged("mbr_relationship_code")))
-      .withColumn("mbr_gender", eligGoldenRules.eligGoldenRuleGender(relationshipCodeChanged("mbr_gender")))
-      .withColumn("ins_med_eff_date", eligGoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_eff_date")))
-      .withColumn("ins_med_term_date", eligGoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_term_date"))).show
+    val dobChanged =eligibilityTable.withColumn("mbr_dob", GoldenRules.eligGoldenRuleDOB(eligibilityTable("mbr_dob"),eligibilityTable("mbr_relationship_class")))
+    val relationshipCodeChanged = dobChanged.withColumn("mbr_relationship_code", GoldenRules.eligGoldenRuleRelationshipCode(dobChanged("mbr_relationship_code"), dobChanged("mbr_dob")))
+    relationshipCodeChanged.withColumn("mbr_relationship_desc", GoldenRules.eligGoldenRuleRelationshipDesc(relationshipCodeChanged("mbr_relationship_code")))
+      .withColumn("mbr_relationship_class", GoldenRules.eligGoldenRuleRelationshipDesc(relationshipCodeChanged("mbr_relationship_code")))
+      .withColumn("mbr_gender", GoldenRules.eligGoldenRuleGender(relationshipCodeChanged("mbr_gender")))
+      .withColumn("ins_med_eff_date", GoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_eff_date")))
+      .withColumn("ins_med_term_date", GoldenRules.eligGoldenRuleDates(relationshipCodeChanged("ins_med_term_date"))).show
 
     //deleting the outputs if they exists
     ScalaUtils.deleteResource(outputFile)

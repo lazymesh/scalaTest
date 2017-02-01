@@ -1,4 +1,4 @@
-package main.scala.officework
+package main.scala.officework.doingWithClasses
 
 
 /**

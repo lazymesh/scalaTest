@@ -1,4 +1,4 @@
-package officework
+package main.scala.officework
 
 import cascading.tuple.hadoop.TupleSerializationProps
 import org.apache.hadoop.conf.Configuration
