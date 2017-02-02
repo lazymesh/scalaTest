@@ -45,9 +45,9 @@ object SparkEntry {
     val eligibilityTable = generateDataFrame.createDataFrame(sqlContext, eligibilityDataRdd, eligSchema)
     val medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
 
-    val eligibilityGoldenRules = new EligibilityGoldenRules(clientConfig.getEOC, clientConfig.getClientType)
-    val eligibilityGoldenRulesApplied = eligibilityGoldenRules.applyEligibilityGoldenRules(eligibilityTable)
     //applying golden rules
+    val goldenRules = new GoldenRules(clientConfig.getEOC, clientConfig.getClientType)
+    val eligibilityGoldenRulesApplied = goldenRules.applyEligibilityGoldenRules(eligibilityTable)
 
     //deleting the outputs if they exists
     ScalaUtils.deleteResource(eligJobConfig.getSinkFilePath)
@@ -61,12 +61,19 @@ object SparkEntry {
       .saveAsNewAPIHadoopFile(eligJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
 
     //integer member id output
-    val memberIdRDD = eligibilityTable.select("dw_member_id").distinct().rdd
-    val intRDD = memberIdRDD.map(value => value(0))
-      .distinct()
-      .zipWithUniqueId()
-//      .map(kv => (Tuple.NULL, new Tuple(kv._1.toString, kv._2.toString)))
-//      .saveAsNewAPIHadoopFile(eligJobConfig.getIntMemberId, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+//    val memberIdRDD = eligibilityTable.select("dw_member_id").distinct().rdd
+    val memberId = eligibilityTable.select("dw_member_id").distinct().withColumnRenamed("dw_member_id", "dw_member_id_1")
+    memberId.createOrReplaceTempView("simpleTable")
+    val memberIdRDD = sqlContext.sql("select row_number() over (order by dw_member_id_1) as int_member_id,dw_member_id_1 from simpleTable")
+
+    val intRDD = memberIdRDD.rdd
+      .map(kv => (Tuple.NULL, new Tuple(kv(0).toString, kv(1).toString)))
+      .saveAsNewAPIHadoopFile(eligJobConfig.getIntMemberId, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+
+    val medicalDF = medicalTable.join(memberIdRDD, medicalTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "inner")
+    medicalDF.drop(medicalDF.col("dw_member_id_1"))
+
+    val medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalDF).show
 
     //stopping sparkContext
     sc.stop()
