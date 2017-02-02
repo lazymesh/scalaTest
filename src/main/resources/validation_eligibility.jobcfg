@@ -4,11 +4,11 @@
 #$HADOOP jar $JAR -job formatValidation -clientId $clientId -input /user/hdfs/$clientId/input/claims/Eligibility.csv -output /user/hdfs/$clientId/Eligibility/ --recordType Eligibility --configFile classPath:config/client_config.properties --layout eligibilityLayout.csv
 #
 #--------------- Mandatory --------------------------
-layoutFile          = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/eligibilityLayout.csv
-inputFile           = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Eligibility.csv
+inputLayoutFile     = /eligibilityLayout.csv
+inputFile           = /home/anahcolus/IdeaProjects/scalaTest/src/main/resources/Eligibility.csv
 recordType          = Eligibility
-outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/Eligibility
-outputIntMemberId     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/IntegerMemberId
+outputDirectory     = /home/anahcolus/IdeaProjects/scalaTest/data/Eligibility
+outputIntMemberId     = /home/anahcolus/IdeaProjects/scalaTest/data/IntegerMemberId
 trapDirectory       = traps/layout/Eligibility
 clientConfigFile    = client_config.properties
 

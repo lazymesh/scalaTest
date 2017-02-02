@@ -22,6 +22,6 @@ class JobCfgParameters(jobCfgFile: String) {
   }
 
   def getInputLayoutFilePath(): String ={
-    jobConfigProps("layoutFile")
+    jobConfigProps("inputLayoutFile")
   }
 }

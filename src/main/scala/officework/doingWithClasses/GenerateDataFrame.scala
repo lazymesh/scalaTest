@@ -13,7 +13,7 @@ class GenerateDataFrame extends scala.Serializable{
   val validators = new Validators
 
   //dataframe generation from input source using the schema generated
-  def eligDataFrame(sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
+  def createDataFrame(sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
     val rowFields = inputLines.map{line => line.split("\\^%~", -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes(value, struct) })}
     val df = sqlContext.createDataFrame(rowFields, schema)
     //    df.show()

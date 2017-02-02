@@ -11,7 +11,7 @@ class GenerateSchemas {
 
   //schema generating function reading from layout file
   def dynamicSchema(file : String): StructType ={
-    val readData = Source.fromFile(file).getLines().filter(!_.startsWith("#"))
+    val readData = Source.fromInputStream(getClass.getResourceAsStream(file)).getLines().filter(!_.startsWith("#"))
     val schema = readData.map(x=>x.split(";", -1)).map {value => StructField(value(1), dataType(value(4)))}
     val structType = StructType(schema.toSeq)
     //    println(structType.prettyJson)
