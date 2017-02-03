@@ -4,6 +4,7 @@ import cascading.tuple.{Tuple, Tuples}
 import main.scala.officework.ScalaUtils
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
 
 import scala.collection.JavaConverters._
 
@@ -73,7 +74,15 @@ object SparkEntry {
     val medicalDF = medicalTable.join(memberIdRDD, medicalTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "inner")
     medicalDF.drop(medicalDF.col("dw_member_id_1"))
 
-    val medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalDF).show
+    val procedureFunction = new ProcedureFunction
+
+    val medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalDF)
+    medicalGoldenRulesApplied.withColumn("selected_procedure_type", procedureFunction.setSelectedProcedureType(medicalGoldenRulesApplied("svc_procedure_type"), medicalGoldenRulesApplied("svc_procedure_code")))
+      .withColumn("facility", procedureFunction.setFacility(medicalGoldenRulesApplied("rev_claim_type"), medicalGoldenRulesApplied("prv_first_name")))
+      .withColumn("duplicate_flag", lit("N"))
+      .withColumn("reversal_flag", lit("N")).show
+
+
 
     //stopping sparkContext
     sc.stop()
