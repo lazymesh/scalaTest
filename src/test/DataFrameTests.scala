@@ -21,18 +21,15 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
 
   }
 
-  test("updating column testing"){
+  test("updating from master table test"){
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     import sqlContext.implicits._
-    val df = Seq(("hello"), ("world"),("hello"), ("tree"),("hello"), ("world"),("good"), ("world")).toDF("text")
+    val diagdf = Seq(("239", "abcd"), ("239.1", "abcd"), ("239.2", "abcd"), ("23.9", "abcd"), ("239.5", "abcd")).toDF("diag1", "diagDesc")
+    val masterdf = Seq(("239", "abcd")).toDF("diagCode", "desc1")
 
-    df.rdd.map(row => row).collect().foreach(println)
-/*    df.map(row => {
-      val row1 = row.getAs[String](1)
-      val make = if (row1.toLowerCase == "hello") "great" else row1
-      Row(make)
-    })*/
+    diagdf.show
+    masterdf.show
 
     sparkContext.stop
   }

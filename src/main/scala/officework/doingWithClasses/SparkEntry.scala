@@ -2,6 +2,7 @@ package main.scala.officework.doingWithClasses
 
 import cascading.tuple.{Tuple, Tuples}
 import main.scala.officework.ScalaUtils
+import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableDiagnosisGroupers}
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
@@ -76,12 +77,25 @@ object SparkEntry {
 
     val procedureFunction = new ProcedureFunction
 
-    val medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalDF)
+    var medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalDF)
     medicalGoldenRulesApplied.withColumn("selected_procedure_type", procedureFunction.setSelectedProcedureType(medicalGoldenRulesApplied("svc_procedure_type"), medicalGoldenRulesApplied("svc_procedure_code")))
       .withColumn("facility", procedureFunction.setFacility(medicalGoldenRulesApplied("rev_claim_type"), medicalGoldenRulesApplied("prv_first_name")))
       .withColumn("duplicate_flag", lit("N"))
-      .withColumn("reversal_flag", lit("N")).show
+      .withColumn("reversal_flag", lit("N"))
 
+    val masterTableDiagnosisGroupers = new MasterTableDiagnosisGroupers
+    val tempTable = masterTableDiagnosisGroupers.readPropertiesToMap("/Diagnosis.csv")
+    val broadCastedDiagMT = sc.broadcast(masterTableDiagnosisGroupers)
+
+    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(broadCastedDiagMT)
+    for(i <- 1 to 9) {
+      medicalGoldenRulesApplied = medicalGoldenRulesApplied.withColumn("diag"+i+"_grouper_id", diagnosisMasterTableUDFs.grouperId(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_grouper_desc", diagnosisMasterTableUDFs.grouperIdDesc(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_supergrouper_id", diagnosisMasterTableUDFs.superGrouperId(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_supergrouper_desc", diagnosisMasterTableUDFs.superGrouperIdDesc(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
+    }
+
+    medicalGoldenRulesApplied.show
 
 
     //stopping sparkContext

@@ -14,7 +14,15 @@ class GenerateDataFrame extends scala.Serializable{
 
   //dataframe generation from input source using the schema generated
   def createDataFrame(sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
-    val rowFields = inputLines.map{line => line.split("\\^%~", -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes(value, struct) })}
+    val rowFields = inputLines.map{line => line.split("\\^%~", -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes(value.replace("\"", ""), struct) })}
+    val df = sqlContext.createDataFrame(rowFields, schema)
+    //    df.show()
+    df
+  }
+
+  //dataframe generation from master tables source using the schema generated
+  def createMasterDataFrame(sqlContext : SQLContext, inputLines : RDD[String], schema : StructType): DataFrame ={
+    val rowFields = inputLines.map{line => line.split("\\|", -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes(value.replace("\"", ""), struct) })}
     val df = sqlContext.createDataFrame(rowFields, schema)
     //    df.show()
     df

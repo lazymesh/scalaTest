@@ -3,7 +3,7 @@ package main.scala.officework.doingWithClasses
 /**
   * Created by ramaharjan on 2/3/17.
   */
-class MasterTableProperties {
+class MasterTableProperties extends scala.Serializable {
 
   val masterTablePropertiesFile = "/master_table_version.properties"
   //loading the properties to map

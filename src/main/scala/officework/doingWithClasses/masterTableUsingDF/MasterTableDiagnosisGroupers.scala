@@ -1,4 +1,6 @@
-package main.scala.officework.doingWithClasses
+package main.scala.officework.doingWithClasses.masterTableUsingDF
+
+import main.scala.officework.doingWithClasses.MasterTableProperties
 
 import scala.collection.immutable.HashMap
 import scala.io.Source
@@ -6,7 +8,7 @@ import scala.io.Source
 /**
   * Created by ramaharjan on 2/3/17.
   */
-class MasterTableDiagnosisGroupers {
+class MasterTableDiagnosisGroupers extends scala.Serializable{
 
   private val masterTableProperties = new MasterTableProperties
 
@@ -22,8 +24,8 @@ class MasterTableDiagnosisGroupers {
     //todo change the line below to read from spark context
     val readData = Source.fromInputStream(getClass.getResourceAsStream(file))
     val filteredLines = readData.getLines().filter(!_.startsWith("#")).filter(!_.isEmpty)
-    val firstLineSplit = filteredLines.take(1).mkString.split("\\|", -1)
     val splittedLine = filteredLines.map(line=>line.split("\\|", -1))
+    val firstLineSplit = filteredLines.take(1).mkString.split("\\|", -1)
     val masterTableLineSize = firstLineSplit.size
     val masterTableVersion = firstLineSplit(firstLineSplit.length-1).replace("\"", "").trim
 
@@ -34,7 +36,7 @@ class MasterTableDiagnosisGroupers {
       var diagGrouperId: String = ""
       var diagGrouperDesc: String = ""
 
-      val diagnosisMasterTableMapped = splittedLine.map(line =>{
+      splittedLine.foreach(line =>{
           diagCode = line(1).replaceAll("\"", "")
           diagSupGrouperId = line(3).replaceAll("\"", "")
           diagSupGrouperDesc = line(4).replaceAll("\"", "")
@@ -52,8 +54,6 @@ class MasterTableDiagnosisGroupers {
             }
           }
       })
-      println(getDiagCodeToDiagGrouperId())
-      diagnosisMasterTableMapped.foreach(println)
     }
   }
 

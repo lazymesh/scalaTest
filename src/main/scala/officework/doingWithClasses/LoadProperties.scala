@@ -5,7 +5,7 @@ import scala.io.Source
 /**
   * Created by ramaharjan on 2/1/17.
   */
-class LoadProperties {
+class LoadProperties extends scala.Serializable {
 
   //read the properties file parsing with "=" and neglecting the comments and returns a map
   def readPropertiesToMap(file : String): Map[String, String] ={
