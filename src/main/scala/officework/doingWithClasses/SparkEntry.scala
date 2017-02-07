@@ -2,7 +2,7 @@ package main.scala.officework.doingWithClasses
 
 import cascading.tuple.{Tuple, Tuples}
 import main.scala.officework.ScalaUtils
-import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableDiagnosisGroupers}
+import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableGroupers}
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
@@ -36,6 +36,12 @@ object SparkEntry {
     val generateSchemas = new GenerateSchemas
     val eligSchema = generateSchemas.dynamicSchema(eligJobConfig.getInputLayoutFilePath)
     val medicalSchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
+
+    val masterTableLocation : String = "/Diagnosis.csv"
+
+    val masterTableDiagnosisGroupers = new MasterTableGroupers
+    val temp = masterTableDiagnosisGroupers.diagnosisMasterTableToMap(masterTableLocation)
+    val broadCastedDiagMT = sc.broadcast(masterTableDiagnosisGroupers)
 
     //defining line delimiter for source files
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
@@ -83,10 +89,6 @@ object SparkEntry {
       .withColumn("duplicate_flag", lit("N"))
       .withColumn("reversal_flag", lit("N"))
 
-    val masterTableDiagnosisGroupers = new MasterTableDiagnosisGroupers
-    val tempTable = masterTableDiagnosisGroupers.readPropertiesToMap("/Diagnosis.csv")
-    val broadCastedDiagMT = sc.broadcast(masterTableDiagnosisGroupers)
-
     val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(broadCastedDiagMT)
     for(i <- 1 to 9) {
       medicalGoldenRulesApplied = medicalGoldenRulesApplied.withColumn("diag"+i+"_grouper_id", diagnosisMasterTableUDFs.grouperId(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
@@ -95,8 +97,24 @@ object SparkEntry {
         .withColumn("diag"+i+"_supergrouper_desc", diagnosisMasterTableUDFs.superGrouperIdDesc(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
     }
 
-    medicalGoldenRulesApplied.show
+    val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString())
+    val medicalEMValidationOutput = medicalRDD
+      .map(row => row.toString().split(",").toList.asJava)
+      .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
+      .saveAsNewAPIHadoopFile(medicalJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
 
+    //EmValidation of medical
+    val pharmacyJobConfig = new JobCfgParameters("/emValidation_Medical.jobcfg")
+    val pharmacySchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
+    val pharamcyDataRdd = sc.textFile(medicalJobConfig.getSourceFilePath)
+    var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
+
+    val renamedMemberIdRDDTable = memberIdRDD.withColumnRenamed("dw_member_id", "dw_member_id_1")
+
+    pharmacyTable = medicalTable.join(renamedMemberIdRDDTable, medicalTable("dw_member_id") === renamedMemberIdRDDTable("dw_member_id_1"), "inner")
+    pharmacyTable.drop(medicalDF.col("dw_member_id_1"))
+
+    pharmacyTable = goldenRules.applyPharmacyGoldenRules(pharmacyTable)
 
     //stopping sparkContext
     sc.stop()

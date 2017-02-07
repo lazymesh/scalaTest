@@ -64,4 +64,21 @@ class GoldenRules(eoc : String, clientType : String) extends GoldenRulesUDFs(eoc
       .withColumn("svc_service_qty", goldenRuleForInteger(changedMedicalTable("svc_service_qty"), lit(0)))
       .withColumn("svc_ip_days", goldenRuleForInteger(changedMedicalTable("svc_ip_days"), lit(0)))
   }
+
+  def applyPharmacyGoldenRules(pharmacyTable : DataFrame): DataFrame = {
+    //todo find efficient way for applying the rules
+    val changedPharmacyTable = applyCommonGoldenRules(pharmacyTable)
+    changedPharmacyTable.withColumn("rev_paid_date", goldenRuleForString(changedPharmacyTable("rev_paid_date"), lit(futureDate)))
+      .withColumn("svc_service_frm_date", goldenRuleForString(changedPharmacyTable("svc_service_frm_date"), lit(futureDate)))
+      .withColumn("rev_paid_amt", goldenRuleForFloat(changedPharmacyTable("rev_paid_amt"), lit(0.toFloat)))
+      .withColumn("svc_days_of_supply", goldenRuleForFloat(changedPharmacyTable("svc_days_of_supply"), lit(0.toFloat)))
+      .withColumn("rev_copay_amt", goldenRuleForFloat(changedPharmacyTable("rev_copay_amt"), lit(0.toFloat)))
+      .withColumn("svc_ndc_code", goldenRuleForString(changedPharmacyTable("svc_ndc_code"), lit(bk)))
+      .withColumn("svc_ndc_desc", goldenRuleForString(changedPharmacyTable("svc_ndc_desc"), lit(blank)))
+      .withColumn("prv_prescriber_id", goldenRuleForString(changedPharmacyTable("prv_prescriber_id"), lit(bk)))
+      .withColumn("prv_prescriber_first_name", goldenRuleForString(changedPharmacyTable("prv_prescriber_first_name"), lit(blank)))
+      .withColumn("svc_drug_name", goldenRuleForString(changedPharmacyTable("svc_drug_name"), lit(blank)))
+      .withColumn("svc_rx_class_desc", goldenRuleForString(changedPharmacyTable("svc_rx_class_desc"), lit(ungroupable)))
+      .withColumn("svc_rx_class_code", goldenRuleForString(changedPharmacyTable("svc_rx_class_code"), lit(U)))
+  }
 }
