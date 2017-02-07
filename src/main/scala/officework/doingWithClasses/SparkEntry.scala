@@ -2,7 +2,7 @@ package main.scala.officework.doingWithClasses
 
 import cascading.tuple.{Tuple, Tuples}
 import main.scala.officework.ScalaUtils
-import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableGroupers}
+import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableGroupers, ProcedureMasterTableUDFs}
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
@@ -40,8 +40,13 @@ object SparkEntry {
     val masterTableLocation : String = "/Diagnosis.csv"
 
     val masterTableDiagnosisGroupers = new MasterTableGroupers
-    val temp = masterTableDiagnosisGroupers.diagnosisMasterTableToMap(masterTableLocation)
+    masterTableDiagnosisGroupers.diagnosisMasterTableToMap(masterTableLocation)
     val broadCastedDiagMT = sc.broadcast(masterTableDiagnosisGroupers)
+
+    val masterTableProcedureGroupers = new MasterTableGroupers
+    val procedureMasterTableLocation : String = "/Procedure.csv"
+    masterTableProcedureGroupers.procedureMasterTableToMap(procedureMasterTableLocation)
+    val broadCastedProcMT = sc.broadcast(masterTableProcedureGroupers)
 
     //defining line delimiter for source files
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
@@ -63,7 +68,7 @@ object SparkEntry {
 
     //eligibility validation output
     val eligRDD = eligibilityGoldenRulesApplied.rdd.map(row => row.toString())
-    val eligibilityOutput = eligRDD
+    val eligibilityOutput = eligRDD.coalesce(1)
       .map(row => row.toString().split(",").toList.asJava)
       .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
       .saveAsNewAPIHadoopFile(eligJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
@@ -74,33 +79,29 @@ object SparkEntry {
     memberId.createOrReplaceTempView("simpleTable")
     val memberIdRDD = sqlContext.sql("select row_number() over (order by dw_member_id_1) as int_member_id,dw_member_id_1 from simpleTable")
 
-    val intRDD = memberIdRDD.rdd
+    val intRDD = memberIdRDD.rdd.coalesce(1)
       .map(kv => (Tuple.NULL, new Tuple(kv(0).toString, kv(1).toString)))
       .saveAsNewAPIHadoopFile(eligJobConfig.getIntMemberId, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
 
     val medicalDF = medicalTable.join(memberIdRDD, medicalTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "inner")
     medicalDF.drop(medicalDF.col("dw_member_id_1"))
 
-    val procedureFunction = new ProcedureFunction
 
     var medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalDF)
-    medicalGoldenRulesApplied.withColumn("selected_procedure_type", procedureFunction.setSelectedProcedureType(medicalGoldenRulesApplied("svc_procedure_type"), medicalGoldenRulesApplied("svc_procedure_code")))
-      .withColumn("facility", procedureFunction.setFacility(medicalGoldenRulesApplied("rev_claim_type"), medicalGoldenRulesApplied("prv_first_name")))
-      .withColumn("duplicate_flag", lit("N"))
-      .withColumn("reversal_flag", lit("N"))
+
+    val procedureFunction = new ProcedureFunction
+    medicalGoldenRulesApplied = procedureFunction.performMedicalProcedureType(medicalGoldenRulesApplied)
 
     val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(broadCastedDiagMT)
-    for(i <- 1 to 9) {
-      medicalGoldenRulesApplied = medicalGoldenRulesApplied.withColumn("diag"+i+"_grouper_id", diagnosisMasterTableUDFs.grouperId(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
-        .withColumn("diag"+i+"_grouper_desc", diagnosisMasterTableUDFs.grouperIdDesc(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
-        .withColumn("diag"+i+"_supergrouper_id", diagnosisMasterTableUDFs.superGrouperId(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
-        .withColumn("diag"+i+"_supergrouper_desc", diagnosisMasterTableUDFs.superGrouperIdDesc(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
-    }
+    medicalGoldenRulesApplied = diagnosisMasterTableUDFs.performDiagnosisMasterTable(medicalGoldenRulesApplied)
+
+    val procedureMasterTableUDFs = new ProcedureMasterTableUDFs(broadCastedProcMT)
+    medicalGoldenRulesApplied = procedureMasterTableUDFs.performProcedureMasterTable(medicalGoldenRulesApplied)
 
     ScalaUtils.deleteResource(medicalJobConfig.getSinkFilePath)
 
     val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString())
-    val medicalEMValidationOutput = medicalRDD
+    val medicalEMValidationOutput = medicalRDD.coalesce(1)
       .map(row => row.toString().split(",").toList.asJava)
       .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
       .saveAsNewAPIHadoopFile(medicalJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
@@ -119,7 +120,7 @@ object SparkEntry {
     ScalaUtils.deleteResource(pharmacyJobConfig.getSinkFilePath)
 
     val pharmacyRDD = pharmacyTable.rdd.map(row => row.toString())
-    val pharmacyEMValidationOutput = pharmacyRDD
+    val pharmacyEMValidationOutput = pharmacyRDD.coalesce(1)
       .map(row => row.toString().split(",").toList.asJava)
       .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
       .saveAsNewAPIHadoopFile(pharmacyJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)

@@ -32,8 +32,8 @@ class ProcedureMasterTableTests extends FunSuite with BeforeAndAfterEach {
     var medicalProcs = procedureDataCreation
 
     val masterTableProcedureGroupers = new MasterTableGroupers
-    val temp = masterTableProcedureGroupers.procedureMasterTableToMap(resourceMasterTableLocation)
-    println(masterTableProcedureGroupers.getCodeToDiagGrouperId())
+    masterTableProcedureGroupers.procedureMasterTableToMap(resourceMasterTableLocation)
+//    println(masterTableProcedureGroupers.getCodeToDiagGrouperId())
     val broadCastedProcMT = sparkContext.broadcast(masterTableProcedureGroupers)
     val procedureMasterTableUDFs = new ProcedureMasterTableUDFs(broadCastedProcMT)
 

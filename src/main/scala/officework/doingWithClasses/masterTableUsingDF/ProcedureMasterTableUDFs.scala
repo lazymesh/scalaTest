@@ -40,42 +40,37 @@ class ProcedureMasterTableUDFs(bc : Broadcast[MasterTableGroupers]) extends scal
   def performProcedureMasterTable(medicalDF : DataFrame) : DataFrame = {
     var medicalTempDF = medicalDF
     for (i <- 0 to 6) {
-      if(i==1){
+      var j : Int = i+1
+      if(i==0){
         medicalTempDF = medicalTempDF.withColumn("svc_procedure_grouper", grouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
           .withColumn("svc_procedure_sub_grouper", superGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
       }
       else{
-        println("****************************************** "+i)
-        medicalTempDF = medicalTempDF.withColumn("Proc" + i + "_grouper_id", grouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
-          .withColumn("Proc" + i + "_Subgrouper_desc", superGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+        medicalTempDF = medicalTempDF.withColumn("Proc" + j + "_grouper_id", grouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+          .withColumn("Proc" + j + "_Subgrouper_desc", superGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
       }
-      medicalTempDF = medicalTempDF.withColumn("Proc" + i + "_grouper_desc", grouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
-        .withColumn("Proc" + i + "_Subgrouper_id", superGrouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+      medicalTempDF = medicalTempDF.withColumn("Proc" + j + "_grouper_desc", grouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+        .withColumn("Proc" + j + "_Subgrouper_id", superGrouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
 
     }
     medicalTempDF
   }
 
-  def grouperId = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
-    val combinedCode = getCombinedProcCode(procCode, svcProcType, loopIterator)
-    println(combinedCode)
-//       println(getGrouperId(combinedCode))
-    ""
-  })
+  def grouperId = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
+    getGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator))
+  )
 
-  def grouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
-//    bc.value.getGrouperIdToDiagGrouperDesc.getOrElse(getGrouperId(getCombinedProcCode(procCode, svcProcType,loopIterator)), "Ungroupable")
-    ""
+  def grouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
+    bc.value.getGrouperIdToDiagGrouperDesc.getOrElse(getGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
+  }
   )
 
   def superGrouperId = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
-//    getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator))
-    ""
+    getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator))
   )
 
   def superGrouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
-//    bc.value.getSuperGrouperIdToSuperGrouperDesc.getOrElse(getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
-    ""
+    bc.value.getSuperGrouperIdToSuperGrouperDesc.getOrElse(getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
   )
 
 
@@ -88,15 +83,12 @@ class ProcedureMasterTableUDFs(bc : Broadcast[MasterTableGroupers]) extends scal
   }
 
   private def getCombinedProcCode(procCode : String, svcProcType : String, loopIterator : Int) : String = {
-    var returnString = ""
     if(loopIterator == 1) {
-      returnString = (procCode+svcProcType).toString
+      procCode+svcProcType
     }
     else {
-      returnString = procCode + procCodeTypes(loopIterator - 1).toString
+      procCode + procCodeTypes(loopIterator)
     }
-    println(":::::::::::: "+returnString)
-    returnString
   }
 
 }

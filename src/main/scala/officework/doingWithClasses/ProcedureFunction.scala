@@ -1,7 +1,10 @@
 package main.scala.officework.doingWithClasses
 
+import org.apache.spark.sql.DataFrame
+
 import scala.collection.immutable.HashMap
-import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.functions.{lit, udf}
+
 import util.control.Breaks._
 
 /**
@@ -87,6 +90,15 @@ class ProcedureFunction extends scala.Serializable{
     cptHashMap ++=icdHashMap
     var contextualHashMap : HashMap[String, HashMap[String, Array[String]]] = HashMap((mapName, cptHashMap))
     contextualHashMap
+  }
+
+  def performMedicalProcedureType(medicalDataFrame : DataFrame) : DataFrame ={
+    var procedureTypedMedicalDF = medicalDataFrame
+    procedureTypedMedicalDF.withColumn("selected_procedure_type", setSelectedProcedureType(procedureTypedMedicalDF("svc_procedure_type"), procedureTypedMedicalDF("svc_procedure_code")))
+      .withColumn("facility", setFacility(procedureTypedMedicalDF("rev_claim_type"), procedureTypedMedicalDF("prv_first_name")))
+      .withColumn("duplicate_flag", lit("N"))
+      .withColumn("reversal_flag", lit("N"))
+    procedureTypedMedicalDF
   }
 
   def setSelectedProcedureType = udf((procedureType: String, procedureCode: String) => {
