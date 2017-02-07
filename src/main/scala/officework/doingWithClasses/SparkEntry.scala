@@ -97,6 +97,8 @@ object SparkEntry {
         .withColumn("diag"+i+"_supergrouper_desc", diagnosisMasterTableUDFs.superGrouperIdDesc(medicalGoldenRulesApplied("svc_diag_"+i+"_code")))
     }
 
+    ScalaUtils.deleteResource(medicalJobConfig.getSinkFilePath)
+
     val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString())
     val medicalEMValidationOutput = medicalRDD
       .map(row => row.toString().split(",").toList.asJava)
@@ -104,17 +106,23 @@ object SparkEntry {
       .saveAsNewAPIHadoopFile(medicalJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
 
     //EmValidation of medical
-    val pharmacyJobConfig = new JobCfgParameters("/emValidation_Medical.jobcfg")
-    val pharmacySchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
-    val pharamcyDataRdd = sc.textFile(medicalJobConfig.getSourceFilePath)
-    var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
+    val pharmacyJobConfig = new JobCfgParameters("/emValidation_Pharmacy.jobcfg")
+    val pharmacySchema = generateSchemas.dynamicSchema(pharmacyJobConfig.getInputLayoutFilePath)
+    val pharmacyDataRdd = sc.textFile(pharmacyJobConfig.getSourceFilePath)
+    var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, pharmacyDataRdd, pharmacySchema)
 
-    val renamedMemberIdRDDTable = memberIdRDD.withColumnRenamed("dw_member_id", "dw_member_id_1")
-
-    pharmacyTable = medicalTable.join(renamedMemberIdRDDTable, medicalTable("dw_member_id") === renamedMemberIdRDDTable("dw_member_id_1"), "inner")
-    pharmacyTable.drop(medicalDF.col("dw_member_id_1"))
+    pharmacyTable = pharmacyTable.join(memberIdRDD, pharmacyTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "inner")
+    pharmacyTable.drop(pharmacyTable.col("dw_member_id_1"))
 
     pharmacyTable = goldenRules.applyPharmacyGoldenRules(pharmacyTable)
+
+    ScalaUtils.deleteResource(pharmacyJobConfig.getSinkFilePath)
+
+    val pharmacyRDD = pharmacyTable.rdd.map(row => row.toString())
+    val pharmacyEMValidationOutput = pharmacyRDD
+      .map(row => row.toString().split(",").toList.asJava)
+      .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
+      .saveAsNewAPIHadoopFile(pharmacyJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
 
     //stopping sparkContext
     sc.stop()
