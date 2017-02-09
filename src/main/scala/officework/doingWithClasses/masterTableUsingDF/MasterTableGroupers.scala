@@ -25,8 +25,8 @@ class MasterTableGroupers extends scala.Serializable{
 
   def diagnosisMasterTableToMap(masterTableLocation : String): Any = {
     //todo change the line below to read from spark context
-    val readData = Source.fromInputStream(getClass.getResourceAsStream(masterTableLocation))
-    val readData2 = Source.fromInputStream(getClass.getResourceAsStream(masterTableLocation))
+    val readData = Source.fromFile(masterTableLocation)
+    val readData2 = Source.fromFile(masterTableLocation)
     val filteredLines = readData.getLines().filter(!_.startsWith("#")).filter(!_.isEmpty)
     val copyFilteredLines = readData2.getLines().filter(!_.startsWith("#")).filter(!_.isEmpty).take(1)
     val splittedLine = filteredLines.map(line=>line.split("\\|", -1))
@@ -64,8 +64,8 @@ class MasterTableGroupers extends scala.Serializable{
 
   def procedureMasterTableToMap(masterTableLocation : String): Any = {
     //todo change the line below to read from spark context
-    val readData = Source.fromInputStream(getClass.getResourceAsStream(masterTableLocation))
-    val readData2 = Source.fromInputStream(getClass.getResourceAsStream(masterTableLocation))
+    val readData = Source.fromFile(masterTableLocation)
+    val readData2 = Source.fromFile(masterTableLocation)
     val filteredLines = readData.getLines().filter(!_.startsWith("#")).filter(!_.isEmpty)
     val copyFilteredLines = readData2.getLines().filter(!_.startsWith("#")).filter(!_.isEmpty).take(1)
     val splittedLine = filteredLines.map(line=>line.split("\\|", -1))

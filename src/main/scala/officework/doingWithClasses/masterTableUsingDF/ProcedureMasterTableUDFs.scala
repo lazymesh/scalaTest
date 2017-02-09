@@ -10,7 +10,7 @@ import scala.collection.immutable.HashMap
 /**
   * Created by ramaharjan on 2/7/17.
   */
-class ProcedureMasterTableUDFs(bc : Broadcast[MasterTableGroupers]) extends scala.Serializable{
+class ProcedureMasterTableUDFs(bc : MasterTableGroupers) extends scala.Serializable{
   val procedureTypeMap = HashMap[String, String](
     ("svc_procedure_code", ""),
     ("svc_rev_code", "Rev Code"),
@@ -61,7 +61,7 @@ class ProcedureMasterTableUDFs(bc : Broadcast[MasterTableGroupers]) extends scal
   )
 
   def grouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
-    bc.value.getGrouperIdToDiagGrouperDesc.getOrElse(getGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
+    bc.getGrouperIdToDiagGrouperDesc.getOrElse(getGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
   }
   )
 
@@ -70,16 +70,16 @@ class ProcedureMasterTableUDFs(bc : Broadcast[MasterTableGroupers]) extends scal
   )
 
   def superGrouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
-    bc.value.getSuperGrouperIdToSuperGrouperDesc.getOrElse(getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
+    bc.getSuperGrouperIdToSuperGrouperDesc.getOrElse(getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
   )
 
 
   private def getGrouperId(diagCode : String): String = {
-    bc.value.getCodeToDiagGrouperId.getOrElse(diagCode, "Ungroupable")
+    bc.getCodeToDiagGrouperId.getOrElse(diagCode, "Ungroupable")
   }
 
   private def getSuperGrouperId(diagCode : String): String = {
-    bc.value.getCodeToDiagSuperGrouperId.getOrElse(diagCode, "Ungroupable")
+    bc.getCodeToDiagSuperGrouperId.getOrElse(diagCode, "Ungroupable")
   }
 
   private def getCombinedProcCode(procCode : String, svcProcType : String, loopIterator : Int) : String = {

@@ -19,4 +19,16 @@ class ReadingFromResourcesTests extends FunSuite with BeforeAndAfterEach {
     val text = Source.fromInputStream(getClass.getResourceAsStream("/validation_eligibility.jobcfg"))
     text.foreach(print)
   }
+
+  test("updating a hashmap"){
+    val array = Seq("1,2,3,2,3,4","a,d,f,s,a,e")
+    val splittedArray = array.map(row => {
+      println(row)
+      row.split(",")
+    }).map(word => {
+      println(word(0))
+
+    })
+
+  }
 }

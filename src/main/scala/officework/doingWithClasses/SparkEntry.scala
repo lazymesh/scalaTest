@@ -4,6 +4,7 @@ import cascading.tuple.{Tuple, Tuples}
 import main.scala.officework.ScalaUtils
 import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableGroupers, ProcedureMasterTableUDFs}
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
+import org.apache.spark.SparkFiles
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
@@ -36,17 +37,23 @@ object SparkEntry {
     val generateSchemas = new GenerateSchemas
     val eligSchema = generateSchemas.dynamicSchema(eligJobConfig.getInputLayoutFilePath)
     val medicalSchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
+/*
 
-    val masterTableLocation : String = "/Diagnosis.csv"
+    val masterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
+    val masterTableLocation2 : String = "Diagnosis.csv"
 
     val masterTableDiagnosisGroupers = new MasterTableGroupers
-    masterTableDiagnosisGroupers.diagnosisMasterTableToMap(masterTableLocation)
-    val broadCastedDiagMT = sc.broadcast(masterTableDiagnosisGroupers)
+    sc.addFile(masterTableLocation)
+    masterTableDiagnosisGroupers.diagnosisMasterTableToMap(SparkFiles.get(masterTableLocation2))
+//    val broadCastedDiagMT = sc.broadcast(masterTableDiagnosisGroupers)
 
     val masterTableProcedureGroupers = new MasterTableGroupers
-    val procedureMasterTableLocation : String = "/Procedure.csv"
-    masterTableProcedureGroupers.procedureMasterTableToMap(procedureMasterTableLocation)
-    val broadCastedProcMT = sc.broadcast(masterTableProcedureGroupers)
+    val procedureMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Procedure.csv"
+    val procedureMasterTableLocation2 : String = "Procedure.csv"
+    sc.addFile(procedureMasterTableLocation)
+    masterTableProcedureGroupers.procedureMasterTableToMap(SparkFiles.get(procedureMasterTableLocation2))
+//    val broadCastedProcMT = sc.broadcast(masterTableProcedureGroupers)
+*/
 
     //defining line delimiter for source files
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
@@ -67,21 +74,16 @@ object SparkEntry {
     ScalaUtils.deleteResource(eligJobConfig.getIntMemberId)
 
     //eligibility validation output
-    val eligRDD = eligibilityGoldenRulesApplied.rdd.map(row => row.toString())
-    val eligibilityOutput = eligRDD.coalesce(1)
-      .map(row => row.toString().split(",").toList.asJava)
-      .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
-      .saveAsNewAPIHadoopFile(eligJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+    val eligRDD = eligibilityGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))
+    OutputSavingFormatUtils.sequenceTupleFormats(eligRDD, eligJobConfig.getSinkFilePath, ",")
 
     //integer member id output
 //    val memberIdRDD = eligibilityTable.select("dw_member_id").distinct().rdd
     val memberId = eligibilityTable.select("dw_member_id").distinct().withColumnRenamed("dw_member_id", "dw_member_id_1")
     memberId.createOrReplaceTempView("simpleTable")
     val memberIdRDD = sqlContext.sql("select row_number() over (order by dw_member_id_1) as int_member_id,dw_member_id_1 from simpleTable")
-
-    val intRDD = memberIdRDD.rdd.coalesce(1)
-      .map(kv => (Tuple.NULL, new Tuple(kv(0).toString, kv(1).toString)))
-      .saveAsNewAPIHadoopFile(eligJobConfig.getIntMemberId, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+    val intRDD = memberIdRDD.rdd.map(row => row.toString().replace("[","").replace("]",""))
+    OutputSavingFormatUtils.sequenceTupleFormats(intRDD, eligJobConfig.getIntMemberId, ",")
 
     val medicalDF = medicalTable.join(memberIdRDD, medicalTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "inner")
     medicalDF.drop(medicalDF.col("dw_member_id_1"))
@@ -91,20 +93,20 @@ object SparkEntry {
 
     val procedureFunction = new ProcedureFunction
     medicalGoldenRulesApplied = procedureFunction.performMedicalProcedureType(medicalGoldenRulesApplied)
+/*
 
-    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(broadCastedDiagMT)
+    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(masterTableDiagnosisGroupers)
     medicalGoldenRulesApplied = diagnosisMasterTableUDFs.performDiagnosisMasterTable(medicalGoldenRulesApplied)
 
-    val procedureMasterTableUDFs = new ProcedureMasterTableUDFs(broadCastedProcMT)
+    medicalGoldenRulesApplied.show
+    val procedureMasterTableUDFs = new ProcedureMasterTableUDFs(masterTableProcedureGroupers)
     medicalGoldenRulesApplied = procedureMasterTableUDFs.performProcedureMasterTable(medicalGoldenRulesApplied)
+*/
 
     ScalaUtils.deleteResource(medicalJobConfig.getSinkFilePath)
 
-    val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString())
-    val medicalEMValidationOutput = medicalRDD.coalesce(1)
-      .map(row => row.toString().split(",").toList.asJava)
-      .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
-      .saveAsNewAPIHadoopFile(medicalJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+    val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))
+    OutputSavingFormatUtils.sequenceTupleFormats(medicalRDD, medicalJobConfig.getSinkFilePath, ",")
 
     //EmValidation of medical
     val pharmacyJobConfig = new JobCfgParameters("/emValidation_Pharmacy.jobcfg")
@@ -119,11 +121,8 @@ object SparkEntry {
 
     ScalaUtils.deleteResource(pharmacyJobConfig.getSinkFilePath)
 
-    val pharmacyRDD = pharmacyTable.rdd.map(row => row.toString())
-    val pharmacyEMValidationOutput = pharmacyRDD.coalesce(1)
-      .map(row => row.toString().split(",").toList.asJava)
-      .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
-      .saveAsNewAPIHadoopFile(pharmacyJobConfig.getSinkFilePath, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+    val pharmacyRDD = pharmacyTable.rdd.map(row => row.toString().replace("[","").replace("]",""))
+    OutputSavingFormatUtils.sequenceTupleFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath, ",")
 
     //stopping sparkContext
     sc.stop()

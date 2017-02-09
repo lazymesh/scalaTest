@@ -2,6 +2,7 @@ package test
 
 import main.scala.officework.doingWithClasses._
 import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableGroupers}
+import org.apache.spark.SparkFiles
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
 
@@ -44,7 +45,9 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
   test("testing master table by creating hashmap"){
     val sparkContext = sparkSession.sparkContext
     val masterTableDiagnosisGroupers = new MasterTableGroupers
-    val temp = masterTableDiagnosisGroupers.diagnosisMasterTableToMap(resourceMasterTableLocation)
+    sparkContext.addFile(masterTableLocation)
+//    println(System.getenv("SPARK_YARN_CACHE_FILES"))
+    val temp = masterTableDiagnosisGroupers.diagnosisMasterTableToMap(SparkFiles.get("Diagnosis.csv"))
     println(masterTableDiagnosisGroupers.getCodeToDiagGrouperId())
     sparkContext.stop()
   }
@@ -54,9 +57,10 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
     var medicalDiags = medicalDataCreation
 
     val masterTableDiagnosisGroupers = new MasterTableGroupers
-    val temp = masterTableDiagnosisGroupers.diagnosisMasterTableToMap(resourceMasterTableLocation)
-    val broadCastedDiagMT = sparkContext.broadcast(masterTableDiagnosisGroupers)
-    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(broadCastedDiagMT)
+    sparkContext.addFile(masterTableLocation)
+    val temp = masterTableDiagnosisGroupers.diagnosisMasterTableToMap(SparkFiles.get("Diagnosis.csv"))
+//    val broadCastedDiagMT = sparkContext.broadcast(masterTableDiagnosisGroupers)
+    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(masterTableDiagnosisGroupers)
     for(i <- 1 to 4) {
       medicalDiags = medicalDiags.withColumn("diag"+i+"_grouper_id", diagnosisMasterTableUDFs.grouperId(medicalDiags("svc_diag_"+i+"_code")))
         .withColumn("diag"+i+"_grouper_desc", diagnosisMasterTableUDFs.grouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
@@ -99,8 +103,8 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
 
     val masterTableDiagnosisGroupers = new MasterTableGroupers
     val temp = masterTableDiagnosisGroupers.readPropertiesToMap(sparkContext, sqlContext, masterTableLocation)
-    val broadCastedDiagMT = sparkContext.broadcast(masterTableDiagnosisGroupers)
-    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(broadCastedDiagMT)
+//    val broadCastedDiagMT = sparkContext.broadcast(masterTableDiagnosisGroupers)
+    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(masterTableDiagnosisGroupers)
     for(i <- 1 to 4) {
       medicalDiags = medicalDiags.withColumn("diag"+i+"_grouper_id", diagnosisMasterTableUDFs.grouperId(medicalDiags("svc_diag_"+i+"_code")))
         .withColumn("diag"+i+"_grouper_desc", diagnosisMasterTableUDFs.grouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
