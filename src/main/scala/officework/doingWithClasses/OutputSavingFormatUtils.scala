@@ -5,6 +5,7 @@ import main.scala.officework.ScalaUtils
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.storage.StorageLevel
 
 import scala.collection.JavaConverters._
 
@@ -14,17 +15,20 @@ import scala.collection.JavaConverters._
 object OutputSavingFormatUtils {
 
   def sequenceTupleFormats(rddData : RDD[String], output : String, delimeter : String): Unit ={
-  rddData.coalesce(1)
-  .map(row => row.toString().split(delimeter).toList.asJava)
-  .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
-  .saveAsNewAPIHadoopFile(output, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
-}
+    ScalaUtils.deleteResource(output)
+    rddData.persist(StorageLevel.MEMORY_AND_DISK_SER).coalesce(1)
+      .map(row => row.toString().split(delimeter).toList.asJava)
+      .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
+      .saveAsNewAPIHadoopFile(output, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+  }
 
   def textCSVFormats(rddData : RDD[String], output : String): Unit ={
-    rddData.coalesce(1).saveAsTextFile(output)
+    ScalaUtils.deleteResource(output)
+    rddData.persist(StorageLevel.MEMORY_AND_DISK_SER).coalesce(1).saveAsTextFile(output)
   }
 
   def dataFrameToCSVFormat(dfData : DataFrame, output : String): Unit ={
-    dfData.coalesce(1).write.format("com.databricks.spark.csv").option("header", true).save(output)
+    ScalaUtils.deleteResource(output)
+    dfData.persist(StorageLevel.MEMORY_AND_DISK_SER).coalesce(1).write.format("com.databricks.spark.csv").save(output)
   }
 }

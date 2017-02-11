@@ -23,7 +23,7 @@ class MasterTableGroupers extends scala.Serializable{
   var codeToSuperGrouperIdMap : HashMap[String, String] = HashMap.empty[String, String]
   var superGrouperIdToSuperGrouperDescMap : HashMap[String, String] = HashMap.empty[String, String]
 
-  def diagnosisMasterTableforBC(sparkSession: SparkSession, masterTableLocation : String): Unit = {
+  def diagnosisMasterTableforBC(sparkSession: SparkSession, masterTableLocation : String): DataFrame = {
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     val generateSchemas = new GenerateSchemas
@@ -31,29 +31,21 @@ class MasterTableGroupers extends scala.Serializable{
     val generateDataFrame = new GenerateDataFrame
     val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
     val masterTableDF = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
+    masterTableDF
+  }
 
-    var diagCode: String = ""
-    var diagGrouperId: String = ""
-    var diagGrouperDesc: String = ""
-    var diagSupGrouperId: String = ""
-    var diagSupGrouperDesc: String = ""
-
-    def getValues(row: Row, names: Seq[String]): HashMap[String, Array[String]] = {
-      diagCode = row.getAs[Any](names(0)).toString
-      diagGrouperId = row.getAs[Any](names(1)).toString
-      diagGrouperDesc = row.getAs[Any](names(2)).toString
-      diagSupGrouperId = row.getAs[Any](names(3)).toString
-      diagSupGrouperDesc = row.getAs[Any](names(4)).toString
+   def getValues(row: Row, names: Seq[String]): HashMap[String, Array[String]] = {
+     var diagCode = row.getAs[Any](names(0)).toString
+     var diagGrouperId = row.getAs[Any](names(1)).toString
+     var diagGrouperDesc = row.getAs[Any](names(2)).toString
+     var diagSupGrouperId = row.getAs[Any](names(3)).toString
+     var diagSupGrouperDesc = row.getAs[Any](names(4)).toString
 
       if (diagGrouperDesc.isEmpty){ diagGrouperDesc = diagSupGrouperDesc}
       codeToGroupersMap ++= HashMap(diagCode -> Array(diagGrouperId, diagGrouperDesc, diagSupGrouperId, diagSupGrouperDesc))
       codeToGroupersMap
     }
-    val names = Seq("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
-    import sqlContext.implicits._
-    var hashMap = masterTableDF.map(getValues(_, names)).first()
-    hashMap.foreach(println)
-  }
+
 
 
   def diagnosisMasterTableToMap(masterTableLocation : String): Any = {

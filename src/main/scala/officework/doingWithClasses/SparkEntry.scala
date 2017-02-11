@@ -62,28 +62,33 @@ object SparkEntry {
 
     //data frame generation for input source
     val generateDataFrame = new GenerateDataFrame
-    val eligibilityTable = generateDataFrame.createDataFrame(sqlContext, eligibilityDataRdd, eligSchema)
+    var eligibilityTable = generateDataFrame.createDataFrame(sqlContext, eligibilityDataRdd, eligSchema)
     val medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
 
     //applying golden rules
     val goldenRules = new GoldenRules(clientConfig.getEOC, clientConfig.getClientType)
-    val eligibilityGoldenRulesApplied = goldenRules.applyEligibilityGoldenRules(eligibilityTable)
+    eligibilityTable = goldenRules.applyEligibilityGoldenRules(eligibilityTable)
 
     //deleting the outputs if they exists
     ScalaUtils.deleteResource(eligJobConfig.getSinkFilePath)
     ScalaUtils.deleteResource(eligJobConfig.getIntMemberId)
 
     //eligibility validation output
-    val eligRDD = eligibilityGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))
-    OutputSavingFormatUtils.sequenceTupleFormats(eligRDD, eligJobConfig.getSinkFilePath, ",")
+    val eligRDD = eligibilityTable.rdd.map(row => row.toString().replace("[","").replace("]",""))
+    //    OutputSavingFormatUtils.sequenceTupleFormats(eligRDD, eligJobConfig.getSinkFilePath, ",")
+    //    OutputSavingFormatUtils.textCSVFormats(eligRDD, eligJobConfig.getSinkFilePath)
+    OutputSavingFormatUtils.dataFrameToCSVFormat(eligibilityTable, eligJobConfig.getSinkFilePath)
 
     //integer member id output
 //    val memberIdRDD = eligibilityTable.select("dw_member_id").distinct().rdd
     val memberId = eligibilityTable.select("dw_member_id").distinct().withColumnRenamed("dw_member_id", "dw_member_id_1")
     memberId.createOrReplaceTempView("simpleTable")
     val memberIdRDD = sqlContext.sql("select row_number() over (order by dw_member_id_1) as int_member_id,dw_member_id_1 from simpleTable")
+
     val intRDD = memberIdRDD.rdd.map(row => row.toString().replace("[","").replace("]",""))
-    OutputSavingFormatUtils.sequenceTupleFormats(intRDD, eligJobConfig.getIntMemberId, ",")
+    //    OutputSavingFormatUtils.sequenceTupleFormats(intRDD, eligJobConfig.getIntMemberId, ",")
+    OutputSavingFormatUtils.textCSVFormats(intRDD, eligJobConfig.getIntMemberId)
+    //    OutputSavingFormatUtils.dataFrameToCSVFormat(memberIdRDD, eligJobConfig.getIntMemberId)
 
     val medicalDF = medicalTable.join(memberIdRDD, medicalTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "inner")
     medicalDF.drop(medicalDF.col("dw_member_id_1"))
@@ -106,7 +111,9 @@ object SparkEntry {
     ScalaUtils.deleteResource(medicalJobConfig.getSinkFilePath)
 
     val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))
-    OutputSavingFormatUtils.sequenceTupleFormats(medicalRDD, medicalJobConfig.getSinkFilePath, ",")
+    //    OutputSavingFormatUtils.sequenceTupleFormats(medicalRDD, medicalJobConfig.getSinkFilePath, ",")
+    OutputSavingFormatUtils.textCSVFormats(medicalRDD, medicalJobConfig.getSinkFilePath)
+    //    OutputSavingFormatUtils.dataFrameToCSVFormat(medicalGoldenRulesApplied, medicalJobConfig.getSinkFilePath)
 
     //EmValidation of medical
     val pharmacyJobConfig = new JobCfgParameters("/emValidation_Pharmacy.jobcfg")
@@ -122,7 +129,9 @@ object SparkEntry {
     ScalaUtils.deleteResource(pharmacyJobConfig.getSinkFilePath)
 
     val pharmacyRDD = pharmacyTable.rdd.map(row => row.toString().replace("[","").replace("]",""))
-    OutputSavingFormatUtils.sequenceTupleFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath, ",")
+    //    OutputSavingFormatUtils.sequenceTupleFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath, ",")
+    OutputSavingFormatUtils.textCSVFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath)
+    //    OutputSavingFormatUtils.dataFrameToCSVFormat(pharmacyTable, pharmacyJobConfig.getSinkFilePath)
 
     //stopping sparkContext
     sc.stop()
