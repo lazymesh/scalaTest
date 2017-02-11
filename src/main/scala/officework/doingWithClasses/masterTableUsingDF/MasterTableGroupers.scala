@@ -2,7 +2,7 @@ package main.scala.officework.doingWithClasses.masterTableUsingDF
 
 import main.scala.officework.doingWithClasses.{GenerateDataFrame, GenerateSchemas, MasterTableProperties}
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext, SparkSession}
 
 import scala.collection.immutable.HashMap
 import scala.io.Source
@@ -17,10 +17,43 @@ class MasterTableGroupers extends scala.Serializable{
   val MASTER_DIAG_VERSION_COL_INDX : Int = 12
   val MASTER_PROC_VERSION_COL_INDX : Int = 20
 
+  var codeToGroupersMap : HashMap[String, Array[String]] = HashMap.empty[String, Array[String]]
   var codeToGrouperIdMap : HashMap[String, String] = HashMap.empty[String, String]
   var grouperIdToGrouperDescMap : HashMap[String, String] = HashMap.empty[String, String]
   var codeToSuperGrouperIdMap : HashMap[String, String] = HashMap.empty[String, String]
   var superGrouperIdToSuperGrouperDescMap : HashMap[String, String] = HashMap.empty[String, String]
+
+  def diagnosisMasterTableforBC(sparkSession: SparkSession, masterTableLocation : String): Unit = {
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+    val generateSchemas = new GenerateSchemas
+    val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
+    val generateDataFrame = new GenerateDataFrame
+    val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
+    val masterTableDF = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
+
+    var diagCode: String = ""
+    var diagGrouperId: String = ""
+    var diagGrouperDesc: String = ""
+    var diagSupGrouperId: String = ""
+    var diagSupGrouperDesc: String = ""
+
+    def getValues(row: Row, names: Seq[String]): HashMap[String, Array[String]] = {
+      diagCode = row.getAs[Any](names(0)).toString
+      diagGrouperId = row.getAs[Any](names(1)).toString
+      diagGrouperDesc = row.getAs[Any](names(2)).toString
+      diagSupGrouperId = row.getAs[Any](names(3)).toString
+      diagSupGrouperDesc = row.getAs[Any](names(4)).toString
+
+      if (diagGrouperDesc.isEmpty){ diagGrouperDesc = diagSupGrouperDesc}
+      codeToGroupersMap ++= HashMap(diagCode -> Array(diagGrouperId, diagGrouperDesc, diagSupGrouperId, diagSupGrouperDesc))
+      codeToGroupersMap
+    }
+    val names = Seq("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
+    import sqlContext.implicits._
+    var hashMap = masterTableDF.map(getValues(_, names)).first()
+    hashMap.foreach(println)
+  }
 
 
   def diagnosisMasterTableToMap(masterTableLocation : String): Any = {
@@ -41,7 +74,9 @@ class MasterTableGroupers extends scala.Serializable{
       var diagGrouperId: String = ""
       var diagGrouperDesc: String = ""
 
-      splittedLine.foreach(line => {
+      var tempCodeToGroupersMap : HashMap[String, Array[String]] = HashMap.empty[String, Array[String]]
+
+      var finaldata = splittedLine.map(line => {
           diagCode = line(1).replaceAll("\"", "")
           diagSupGrouperId = line(3).replaceAll("\"", "")
           diagSupGrouperDesc = line(4).replaceAll("\"", "")
@@ -49,6 +84,7 @@ class MasterTableGroupers extends scala.Serializable{
           diagGrouperDesc = line(6).replaceAll("\"", "")
           if (!diagCode.isEmpty) {
             if (diagGrouperDesc.isEmpty){ diagGrouperDesc = diagSupGrouperDesc}
+            tempCodeToGroupersMap ++= HashMap(diagCode -> Array(diagGrouperId, diagGrouperDesc, diagSupGrouperId, diagSupGrouperDesc))
             addCodeToDiagGrouperId(diagCode, diagGrouperId)
             if(!grouperIdToGrouperDescMap.contains(diagGrouperId)) {
               addGrouperIdToDiagGrouperDesc(diagGrouperId, diagGrouperDesc)
@@ -58,7 +94,11 @@ class MasterTableGroupers extends scala.Serializable{
               addSuperGrouperIdToSuperGrouperDesc(diagSupGrouperId, diagSupGrouperDesc)
             }
           }
+        tempCodeToGroupersMap
       })
+      for (elem <- finaldata) {
+        codeToGroupersMap ++= elem
+      }
     }
   }
 
@@ -182,6 +222,22 @@ class MasterTableGroupers extends scala.Serializable{
   }
 
   def getSuperGrouperIdToSuperGrouperDesc(): HashMap[String, String] = {
+    superGrouperIdToSuperGrouperDescMap
+  }
+
+  def getDiagGrouperId(diagCode : String): String = {
+    codeToGroupersMap.get(diagCode).getOrElse(0, "Ungroupable").toString
+  }
+
+  def getDiagGrouperDesc(diagCode : String): HashMap[String, String] = {
+    grouperIdToGrouperDescMap
+  }
+
+  def getSuperGrouperId(diagCode : String): HashMap[String, String] = {
+    codeToSuperGrouperIdMap
+  }
+
+  def getSuperGrouperDesc(diagCode : String): HashMap[String, String] = {
     superGrouperIdToSuperGrouperDescMap
   }
 }

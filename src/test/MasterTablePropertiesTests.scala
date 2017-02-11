@@ -52,6 +52,27 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
     sparkContext.stop()
   }
 
+  test("testing  hashmap loop"){
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+
+    var medicalDiags = medicalDataCreation
+
+    val masterTableDiagnosisGroupers = new MasterTableGroupers
+    val temp = masterTableDiagnosisGroupers.diagnosisMasterTableforBC(sparkSession, masterTableLocation)
+    //    val broadCastedDiagMT = sparkContext.broadcast(masterTableDiagnosisGroupers)
+    /*val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(masterTableDiagnosisGroupers)
+    for(i <- 1 to 4) {
+      medicalDiags = medicalDiags.withColumn("diag"+i+"_grouper_id", diagnosisMasterTableUDFs.grouperId(medicalDiags("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_grouper_desc", diagnosisMasterTableUDFs.grouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_supergrouper_id", diagnosisMasterTableUDFs.superGrouperId(medicalDiags("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_supergrouper_desc", diagnosisMasterTableUDFs.superGrouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
+    }
+    medicalDiags.collect()
+    medicalDiags.show*/
+    sparkContext.stop()
+  }
+
   test("1 testing masterTable on Medical Table"){
     val sparkContext = sparkSession.sparkContext
     var medicalDiags = medicalDataCreation
