@@ -53,10 +53,6 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
   }
 
   test("testing  hashmap loop"){
-    val sparkSession = SparkSession.builder().appName("udf testings")
-      .master("local")
-      .config("", "")
-      .getOrCreate()
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
 
@@ -66,11 +62,10 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
     val tempdf = masterTableDiagnosisGroupers.diagnosisMasterTableforBC(sparkSession, masterTableLocation)
 
     val names = Seq("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
-    tempdf.show
-    import sparkSession.implicits._
-    var hashMap = tempdf.rdd.collect.map{row => {masterTableDiagnosisGroupers.getValues(row, names)}}
-    hashMap.foreach(println)
+    var hashMap = tempdf.rdd.map(row => (masterTableDiagnosisGroupers.getValues(row, names))).collectAsMap()
 
+    println("::::::::::::::::::::::::::::::::::: "+hashMap.get(".map(line=>line.split(\"\\\\|\", -1))").getOrElse(0, "Ungroupable"))
+//    hashMap.foreach(println)
     //    val broadCastedDiagMT = sparkContext.broadcast(masterTableDiagnosisGroupers)
     /*val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(masterTableDiagnosisGroupers)
     for(i <- 1 to 4) {
@@ -81,6 +76,36 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
     }
     medicalDiags.collect()
     medicalDiags.show*/
+    sparkContext.stop()
+  }
+
+  test("hasmap creation from master table "){
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+
+    var masterTableRdd = sparkContext.textFile(masterTableLocation)
+//      .getLines()
+      .map(line=>line.split("\\|", -1))
+      .map(row => (row(1).replace("\"","") -> Array(row(5).replace("\"",""), row(6).replace("\"",""), row(3).replace("\"",""), row(4).replace("\"",""))))
+      .collectAsMap()
+    println(":::::::::::::::::::::::::: "+masterTableRdd("S39.848S")(0))
+//    masterTableRdd.foreach(println)
+  }
+
+  test("master table as rdd maps"){
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+
+    sparkContext.addFile(masterTableLocation)
+    var medicalDiags = medicalDataCreation
+    val masterTableUdfs = new MasterTableUdfs(SparkFiles.get("Diagnosis.csv"))
+        for(i <- 1 to 4) {
+          medicalDiags = medicalDiags.withColumn("diag"+i+"_grouper_id", masterTableUdfs.getDiagGrouperId(medicalDiags("svc_diag_"+i+"_code")))
+            .withColumn("diag"+i+"_grouper_desc", masterTableUdfs.getDiagGrouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
+            .withColumn("diag"+i+"_supergrouper_id", masterTableUdfs.getSuperDiagGrouperId(medicalDiags("svc_diag_"+i+"_code")))
+            .withColumn("diag"+i+"_supergrouper_desc", masterTableUdfs.getsuperDiagGrouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
+        }
+        medicalDiags.show
     sparkContext.stop()
   }
 
@@ -115,7 +140,7 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
     val masterTableDataFrame = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
 
     var medicalDiags = medicalDataCreation
-    val broadCastedDiagMT = sparkContext.broadcast(masterTableDataFrame)
+/*    val broadCastedDiagMT = sparkContext.broadcast(masterTableDataFrame)
     val masterTableUdfs = new MasterTableUdfs(broadCastedDiagMT)
     for(i <- 1 to 4) {
       medicalDiags = medicalDiags.withColumn("diag"+i+"_grouper_id", masterTableUdfs.getDiagGrouperId(medicalDiags("svc_diag_"+i+"_code")))
@@ -123,7 +148,7 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
 //        .withColumn("diag"+i+"_supergrouper_id", masterTableUdfs.getSuperDiagGrouperId(medicalDiags("svc_diag_"+i+"_code")))
 //        .withColumn("diag"+i+"_supergrouper_desc", masterTableUdfs.getsuperDiagGrouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
     }
-    medicalDiags.show
+    medicalDiags.show*/
     sparkContext.stop()
   }
 

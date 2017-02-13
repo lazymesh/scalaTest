@@ -34,7 +34,7 @@ class MasterTableGroupers extends scala.Serializable{
     masterTableDF
   }
 
-   def getValues(row: Row, names: Seq[String]): HashMap[String, Array[String]] = {
+   def getValues(row: Row, names: Seq[String]): (String, Array[String]) = {
      var diagCode = row.getAs[Any](names(0)).toString
      var diagGrouperId = row.getAs[Any](names(1)).toString
      var diagGrouperDesc = row.getAs[Any](names(2)).toString
@@ -42,8 +42,7 @@ class MasterTableGroupers extends scala.Serializable{
      var diagSupGrouperDesc = row.getAs[Any](names(4)).toString
 
       if (diagGrouperDesc.isEmpty){ diagGrouperDesc = diagSupGrouperDesc}
-      codeToGroupersMap ++= HashMap(diagCode -> Array(diagGrouperId, diagGrouperDesc, diagSupGrouperId, diagSupGrouperDesc))
-      codeToGroupersMap
+      (diagCode -> Array(diagGrouperId, diagGrouperDesc, diagSupGrouperId, diagSupGrouperDesc))
     }
 
 

@@ -37,6 +37,14 @@ object SparkEntry {
     val generateSchemas = new GenerateSchemas
     val eligSchema = generateSchemas.dynamicSchema(eligJobConfig.getInputLayoutFilePath)
     val medicalSchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
+
+    //dataframe creating instance
+    val generateDataFrame = new GenerateDataFrame
+
+    //master table dataframes
+    val masterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
+    sc.addFile(masterTableLocation)
+    val masterTableUdfs = new MasterTableUdfs(SparkFiles.get("Diagnosis.csv"))
 /*
 
     val masterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
@@ -61,7 +69,6 @@ object SparkEntry {
     val medicalDataRdd = sc.textFile(medicalJobConfig.getSourceFilePath)
 
     //data frame generation for input source
-    val generateDataFrame = new GenerateDataFrame
     var eligibilityTable = generateDataFrame.createDataFrame(sqlContext, eligibilityDataRdd, eligSchema)
     val medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
 
@@ -98,6 +105,9 @@ object SparkEntry {
 
     val procedureFunction = new ProcedureFunction
     medicalGoldenRulesApplied = procedureFunction.performMedicalProcedureType(medicalGoldenRulesApplied)
+
+    medicalGoldenRulesApplied = masterTableUdfs.updateFromDiagMT(medicalGoldenRulesApplied)
+    medicalGoldenRulesApplied.show
 /*
 
     val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(masterTableDiagnosisGroupers)

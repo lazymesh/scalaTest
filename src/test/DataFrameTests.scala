@@ -1,6 +1,8 @@
 package test
 
-import org.apache.spark.sql.{Row, SparkSession}
+import main.scala.officework.doingWithClasses.{GenerateDataFrame, GenerateSchemas, JobCfgParameters, MasterTableUdfs}
+import org.apache.spark.SparkFiles
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
 import org.apache.spark.sql.functions._
 
@@ -38,7 +40,7 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
     sparkContext.stop
   }
 
-  test("update a dataframe using another dataframe"){
+  test("update a dataframe using another dataframe using join"){
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     import sqlContext.implicits._
@@ -76,31 +78,53 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
          .withColumn("diag"+i+"_supergrouper_desc", diagnosisMasterTableUdfs(masterdf("superGrouperDescription")))
       .drop("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
      }
-
-
-    diagCodes.show
-/*
-
-    // I think `t2` is an alias for `time` and you want to update `t2`
-    val time = Seq(
-      (1, 10),
-      (4, 40),
-      (9, 90)).toDF("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
-
-    // this is the calculation of the new records
-    val new_t2 = u.join(time)
-      .where('time >= 'start)
-      .where('time < 'end)
-      .withColumn("recordings + c", 'recordings + 'c)
-//      .select('time, $"recordings + c" as 'recordings)
-
-    // the following is an equivalent of INSERT INTO using Dataset API
-//    val solution = time.union(new_t2)
-    new_t2.show
-    //    time.show
-//    solution.show
-*/
-
     sparkContext.stop()
   }
+
+/*  test("testing update on actual data") {
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+
+    val masterTableLocation: String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
+    val medicalJobConfig = new JobCfgParameters("/emValidation_Medical.jobcfg")
+    val generateSchemas = new GenerateSchemas
+    val medicalSchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
+
+    val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
+    val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
+
+    val generateDataFrame = new GenerateDataFrame
+
+    var masterTableDF = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
+
+    sparkContext.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
+    val medicalDataRdd = sparkContext.textFile(medicalJobConfig.getSourceFilePath)
+
+    var medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
+    val masterTableLocation2: String = "Diagnosis.csv"
+
+    masterTableDF = masterTableDF.select("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
+
+    val masterTableBC = sparkContext.broadcast(masterTableDF)
+    val masterTableUdfs = new MasterTableUdfs(masterTableBC)
+
+    medicalTable = updateFromDiagnosisMT(medicalTable)
+    medicalTable.show
+    def diagnosisMasterTableUdfs = udf((value: String) => {
+      if (value != null) value else "Ungroupable"
+    })
+
+    def updateFromDiagnosisMT(medicalTable: DataFrame): DataFrame = {
+      var updatedMedical = medicalTable
+      for (i <- 1 to 9) {
+        updatedMedical = updatedMedical.join(masterTableBC.value, updatedMedical("svc_diag_" + i + "_code") === masterTableBC.value("diagnosisCode"), "left")
+          .withColumn("diag" + i + "_grouper_id", diagnosisMasterTableUdfs(masterTableBC.value("grouperID")))
+          .withColumn("diag" + i + "_grouper_desc", diagnosisMasterTableUdfs(masterTableBC.value("grouperDescription")))
+          .withColumn("diag" + i + "_supergrouper_id", diagnosisMasterTableUdfs(masterTableBC.value("superGrouperID")))
+          .withColumn("diag" + i + "_supergrouper_desc", diagnosisMasterTableUdfs(masterTableBC.value("superGrouperDescription")))
+          .drop("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
+      }
+      updatedMedical
+    }
+  }*/
 }
