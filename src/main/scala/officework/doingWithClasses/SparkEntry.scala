@@ -42,26 +42,14 @@ object SparkEntry {
     val generateDataFrame = new GenerateDataFrame
 
     //master table dataframes
-    val masterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
-    sc.addFile(masterTableLocation)
-    val masterTableUdfs = new MasterTableUdfs(SparkFiles.get("Diagnosis.csv"))
-/*
+    val diagnosisMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
+    sc.addFile(diagnosisMasterTableLocation)
+    val diagnosisMasterTableUdfs = new DiagnosisMasterTableUDFs(SparkFiles.get("Diagnosis.csv"))
 
-    val masterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
-    val masterTableLocation2 : String = "Diagnosis.csv"
-
-    val masterTableDiagnosisGroupers = new MasterTableGroupers
-    sc.addFile(masterTableLocation)
-    masterTableDiagnosisGroupers.diagnosisMasterTableToMap(SparkFiles.get(masterTableLocation2))
-//    val broadCastedDiagMT = sc.broadcast(masterTableDiagnosisGroupers)
-
-    val masterTableProcedureGroupers = new MasterTableGroupers
     val procedureMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Procedure.csv"
-    val procedureMasterTableLocation2 : String = "Procedure.csv"
     sc.addFile(procedureMasterTableLocation)
-    masterTableProcedureGroupers.procedureMasterTableToMap(SparkFiles.get(procedureMasterTableLocation2))
-//    val broadCastedProcMT = sc.broadcast(masterTableProcedureGroupers)
-*/
+    val procedureMasterTableUdfs = new ProcedureMasterTableUDFs(SparkFiles.get("Procedure.csv"))
+
 
     //defining line delimiter for source files
     sc.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
@@ -106,18 +94,11 @@ object SparkEntry {
     val procedureFunction = new ProcedureFunction
     medicalGoldenRulesApplied = procedureFunction.performMedicalProcedureType(medicalGoldenRulesApplied)
 
-    medicalGoldenRulesApplied = masterTableUdfs.updateFromDiagMT(medicalGoldenRulesApplied)
-    medicalGoldenRulesApplied.show
-/*
-
-    val diagnosisMasterTableUDFs = new DiagnosisMasterTableUDFs(masterTableDiagnosisGroupers)
-    medicalGoldenRulesApplied = diagnosisMasterTableUDFs.performDiagnosisMasterTable(medicalGoldenRulesApplied)
+    //master table
+    medicalGoldenRulesApplied = diagnosisMasterTableUdfs.performDiagnosisMasterTable(medicalGoldenRulesApplied)
+    medicalGoldenRulesApplied = procedureMasterTableUdfs.performProcedureMasterTable(medicalGoldenRulesApplied)
 
     medicalGoldenRulesApplied.show
-    val procedureMasterTableUDFs = new ProcedureMasterTableUDFs(masterTableProcedureGroupers)
-    medicalGoldenRulesApplied = procedureMasterTableUDFs.performProcedureMasterTable(medicalGoldenRulesApplied)
-*/
-
     ScalaUtils.deleteResource(medicalJobConfig.getSinkFilePath)
 
     val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))

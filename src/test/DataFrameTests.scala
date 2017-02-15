@@ -1,6 +1,7 @@
 package test
 
-import main.scala.officework.doingWithClasses.{GenerateDataFrame, GenerateSchemas, JobCfgParameters, MasterTableUdfs}
+import main.scala.officework.doingWithClasses._
+import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, ProcedureMasterTableUDFs}
 import org.apache.spark.SparkFiles
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
@@ -81,7 +82,7 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
     sparkContext.stop()
   }
 
-/*  test("testing update on actual data") {
+  test("testing update on actual data") {
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
 
@@ -126,5 +127,51 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
       }
       updatedMedical
     }
-  }*/
+  }
+
+  test("testing for number of tasks when data frame is converted to rdd"){
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+
+    val medicalDataFileLocation = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Medical.csv"
+    val medicalJobConfig = new JobCfgParameters("/emValidation_Medical.jobcfg")
+
+    val generateSchemas = new GenerateSchemas
+    val medicalSchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
+
+    sparkContext.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
+    val medicalDataRdd = sparkContext.textFile(medicalDataFileLocation)
+
+    val generateDataFrame = new GenerateDataFrame
+    val medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
+
+    val goldenRules = new GoldenRules("2016-12-31", "medicare")
+    var medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalTable)
+
+    val procedureFunction = new ProcedureFunction
+    medicalGoldenRulesApplied = procedureFunction.performMedicalProcedureType(medicalGoldenRulesApplied)
+
+    val diagnosisMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
+    sparkContext.addFile(diagnosisMasterTableLocation)
+    val diagnosisMasterTableUdfs = new DiagnosisMasterTableUDFs(SparkFiles.get("Diagnosis.csv"))
+    medicalGoldenRulesApplied = diagnosisMasterTableUdfs.performDiagnosisMasterTable(medicalGoldenRulesApplied)
+
+    val procedureMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Procedure.csv"
+    sparkContext.addFile(procedureMasterTableLocation)
+    val procedureMasterTableUdfs = new ProcedureMasterTableUDFs(SparkFiles.get("Procedure.csv"))
+    medicalGoldenRulesApplied = procedureMasterTableUdfs.performProcedureMasterTable(medicalGoldenRulesApplied)
+
+    val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))
+    OutputSavingFormatUtils.textCSVFormats(medicalRDD, medicalJobConfig.getSinkFilePath)
+
+    val pharmacyJobConfig = new JobCfgParameters("/emValidation_Pharmacy.jobcfg")
+    val pharmacySchema = generateSchemas.dynamicSchema(pharmacyJobConfig.getInputLayoutFilePath)
+    val pharmacyDataRdd = sparkContext.textFile(pharmacyJobConfig.getSourceFilePath)
+    var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, pharmacyDataRdd, pharmacySchema)
+
+    pharmacyTable = goldenRules.applyPharmacyGoldenRules(pharmacyTable)
+
+    val pharmacyRDD = pharmacyTable.rdd.repartition(2).map(row => row.toString().replace("[","").replace("]",""))
+    OutputSavingFormatUtils.textCSVFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath)
+  }
 }

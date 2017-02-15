@@ -1,16 +1,22 @@
 package main.scala.officework.doingWithClasses.masterTableUsingDF
 
-import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.udf
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.functions.{udf, _}
 
 import scala.collection.immutable.HashMap
+import scala.io.Source
 
 /**
   * Created by ramaharjan on 2/7/17.
   */
-class ProcedureMasterTableUDFs(bc : MasterTableGroupers) extends scala.Serializable{
+class ProcedureMasterTableUDFs(masterTableLocation : String) extends scala.Serializable {
+
+  var procedureMasterTableRdd = Source.fromFile(masterTableLocation)
+    .getLines()
+    .map(line=>line.split("\\|", -1))
+    .map(row => row(1).replace("\"","")+row(4).replace("\"","") -> Array(row(5).replace("\"",""), row(6).replace("\"",""), row(18).replace("\"",""), row(7).replace("\"","")))
+    .toMap
+
   val procedureTypeMap = HashMap[String, String](
     ("svc_procedure_code", ""),
     ("svc_rev_code", "Rev Code"),
@@ -42,48 +48,46 @@ class ProcedureMasterTableUDFs(bc : MasterTableGroupers) extends scala.Serializa
     for (i <- 0 to 6) {
       var j : Int = i+1
       if(i==0){
-        medicalTempDF = medicalTempDF.withColumn("svc_procedure_grouper", grouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
-          .withColumn("svc_procedure_sub_grouper", superGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+        medicalTempDF = medicalTempDF.withColumn("svc_procedure_grouper", getProcedureGrouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+          .withColumn("svc_procedure_sub_grouper", getSubProcedureGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
       }
       else{
-        medicalTempDF = medicalTempDF.withColumn("Proc" + j + "_grouper_id", grouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
-          .withColumn("Proc" + j + "_Subgrouper_desc", superGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+        medicalTempDF = medicalTempDF.withColumn("Proc" + j + "_grouper_id", getProcedureGrouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+          .withColumn("Proc" + j + "_Subgrouper_desc", getSubProcedureGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
       }
-      medicalTempDF = medicalTempDF.withColumn("Proc" + j + "_grouper_desc", grouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
-        .withColumn("Proc" + j + "_Subgrouper_id", superGrouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+      medicalTempDF = medicalTempDF.withColumn("Proc" + j + "_grouper_desc", getProcedureGrouperIdDesc(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
+        .withColumn("Proc" + j + "_Subgrouper_id", getSubProcedureGrouperId(medicalTempDF(procCodeFields(i)), medicalTempDF("svc_procedure_type"), lit(i)))
 
     }
     medicalTempDF
   }
 
-  def grouperId = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
-    getGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator))
-  )
+  def getProcedureGrouperId = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
+    val key : String = getCombinedProcCode(procCode, svcProcType, loopIterator)
+    val matchedArray = procedureMasterTableRdd.getOrElse(key, "Ungroupable")
+    if(matchedArray != "Ungroupable") procedureMasterTableRdd(key)(0) else "Ungroupable"
+  })
 
-  def grouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
-    bc.getGrouperIdToDiagGrouperDesc.getOrElse(getGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
-  }
-  )
+  def getProcedureGrouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
+    val key : String = getCombinedProcCode(procCode, svcProcType, loopIterator)
+    val matchedArray = procedureMasterTableRdd.getOrElse(key, "Ungroupable")
+    if(matchedArray != "Ungroupable") procedureMasterTableRdd(key)(1) else "Ungroupable"
+  })
 
-  def superGrouperId = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
-    getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator))
-  )
+  def getSubProcedureGrouperId = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
+    val key : String = getCombinedProcCode(procCode, svcProcType, loopIterator)
+    val matchedArray = procedureMasterTableRdd.getOrElse(key, "Ungroupable")
+    if(matchedArray != "Ungroupable") procedureMasterTableRdd(key)(2) else "Ungroupable"
+  })
 
-  def superGrouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) =>
-    bc.getSuperGrouperIdToSuperGrouperDesc.getOrElse(getSuperGrouperId(getCombinedProcCode(procCode, svcProcType, loopIterator)), "Ungroupable")
-  )
-
-
-  private def getGrouperId(diagCode : String): String = {
-    bc.getCodeToDiagGrouperId.getOrElse(diagCode, "Ungroupable")
-  }
-
-  private def getSuperGrouperId(diagCode : String): String = {
-    bc.getCodeToDiagSuperGrouperId.getOrElse(diagCode, "Ungroupable")
-  }
+  def getSubProcedureGrouperIdDesc = udf((procCode : String, svcProcType : String, loopIterator : Int) => {
+    val key : String = getCombinedProcCode(procCode, svcProcType, loopIterator)
+    val matchedArray = procedureMasterTableRdd.getOrElse(key, "Ungroupable")
+    if(matchedArray != "Ungroupable") procedureMasterTableRdd(key)(3) else "Ungroupable"
+  })
 
   private def getCombinedProcCode(procCode : String, svcProcType : String, loopIterator : Int) : String = {
-    if(loopIterator == 1) {
+    if(loopIterator == 0) {
       procCode+svcProcType
     }
     else {

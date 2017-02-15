@@ -4,45 +4,47 @@ import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.udf
 
+import scala.io.Source
+
 /**
   * Created by ramaharjan on 2/6/17.
   */
-class DiagnosisMasterTableUDFs(bc : MasterTableGroupers) extends scala.Serializable{
+class DiagnosisMasterTableUDFs(masterTableLocation : String) extends scala.Serializable {
 
-  def performDiagnosisMasterTable(medicalDataFrame : DataFrame): DataFrame={
-    var diagnosedmedicalDataFrame = medicalDataFrame
+  var masterTableRdd = Source.fromFile(masterTableLocation)
+    .getLines()
+    .map(line=>line.split("\\|", -1))
+    .map(row => row(1).replace("\"","") -> Array(row(5).replace("\"",""), row(6).replace("\"",""), row(3).replace("\"",""), row(4).replace("\"","")))
+    .toMap
+
+  def performDiagnosisMasterTable(medical : DataFrame): DataFrame = {
+    var medicalDiags = medical
     for(i <- 1 to 9) {
-      diagnosedmedicalDataFrame = diagnosedmedicalDataFrame.withColumn("diag"+i+"_grouper_id", grouperId(diagnosedmedicalDataFrame("svc_diag_"+i+"_code")))
-        .withColumn("diag"+i+"_grouper_desc", grouperIdDesc(diagnosedmedicalDataFrame("svc_diag_"+i+"_code")))
-        .withColumn("diag"+i+"_supergrouper_id", superGrouperId(diagnosedmedicalDataFrame("svc_diag_"+i+"_code")))
-        .withColumn("diag"+i+"_supergrouper_desc", superGrouperIdDesc(diagnosedmedicalDataFrame("svc_diag_"+i+"_code")))
+      medicalDiags = medicalDiags.withColumn("diag"+i+"_grouper_id", getDiagGrouperId(medicalDiags("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_grouper_desc", getDiagGrouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_supergrouper_id", getSuperDiagGrouperId(medicalDiags("svc_diag_"+i+"_code")))
+        .withColumn("diag"+i+"_supergrouper_desc", getsuperDiagGrouperIdDesc(medicalDiags("svc_diag_"+i+"_code")))
     }
-    diagnosedmedicalDataFrame
+    medicalDiags
   }
 
-  def grouperId = udf((diagCode : String) =>
-    getGrouperId(diagCode)
-  )
+  def getDiagGrouperId = udf((diagCode : String) => {
+    val matchedArray = masterTableRdd.getOrElse(diagCode, "Ungroupable")
+    if(matchedArray != "Ungroupable") masterTableRdd(diagCode)(0) else "Ungroupable"
+  })
 
-  def grouperIdDesc = udf((diagCode : String) =>
-    bc.getGrouperIdToDiagGrouperDesc.getOrElse(getGrouperId(diagCode), "Ungroupable")
-  )
+  def getDiagGrouperIdDesc = udf((diagCode : String) => {
+    val matchedArray = masterTableRdd.getOrElse(diagCode, "Ungroupable")
+    if(matchedArray != "Ungroupable") masterTableRdd(diagCode)(1) else "Ungroupable"
+  })
 
-  def superGrouperId = udf((diagCode : String) =>
-    getSuperGrouperId(diagCode)
-  )
+  def getSuperDiagGrouperId = udf((diagCode : String) => {
+    val matchedArray = masterTableRdd.getOrElse(diagCode, "Ungroupable")
+    if(matchedArray != "Ungroupable") masterTableRdd(diagCode)(2) else "Ungroupable"
+  })
 
-  def superGrouperIdDesc = udf((diagCode : String) =>
-    bc.getSuperGrouperIdToSuperGrouperDesc.getOrElse(getSuperGrouperId(diagCode), "Ungroupable")
-  )
-
-
-  private def getGrouperId(diagCode : String): String = {
-    bc.getCodeToDiagGrouperId.getOrElse(diagCode, "Ungroupable")
-  }
-
-  private def getSuperGrouperId(diagCode : String): String = {
-    bc.getCodeToDiagSuperGrouperId.getOrElse(diagCode, "Ungroupable")
-  }
-
+  def getsuperDiagGrouperIdDesc = udf((diagCode : String) => {
+    val matchedArray = masterTableRdd.getOrElse(diagCode, "Ungroupable")
+    if(matchedArray != "Ungroupable") masterTableRdd(diagCode)(3) else "Ungroupable"
+  })
 }

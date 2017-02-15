@@ -4,7 +4,7 @@ import cascading.tuple.{Tuple, Tuples}
 import main.scala.officework.ScalaUtils
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.JavaConverters._
