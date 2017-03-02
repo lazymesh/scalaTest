@@ -1,13 +1,16 @@
 package main.scala.officework.doingWithClasses
 
+import java.util
+
 import cascading.tuple.{Tuple, Tuples}
 import main.scala.officework.ScalaUtils
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.JavaConverters._
+import scala.collection.convert.WrapAsJava.seqAsJavaList
 
 /**
   * Created by ramaharjan on 2/9/17.
@@ -20,6 +23,20 @@ object OutputSavingFormatUtils {
       .map(row => row.toString().split(delimeter).toList.asJava)
       .map(v => (Tuple.NULL, Tuples.create(v.asInstanceOf[java.util.List[AnyRef]])))
       .saveAsNewAPIHadoopFile(output, classOf[Tuple], classOf[Tuple], classOf[SequenceFileOutputFormat[Tuple, Tuple]], ScalaUtils.getHadoopConf)
+  }
+
+  def createList(rddString : String) : util.LinkedList[AnyRef] = {
+    var list = new util.LinkedList[AnyRef]
+    var pos = 1
+    var end = rddString.indexOf(',', 0)
+    while (end >= 0) {
+      list.add(rddString.substring(pos, end))
+      pos = end + 1
+      end = rddString.indexOf(',', pos)
+    }
+    list.add(rddString.substring(pos, rddString.length-1))
+    println(list)
+    list
   }
 
   def textCSVFormats(rddData : RDD[String], output : String): Unit ={

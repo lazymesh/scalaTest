@@ -45,10 +45,22 @@ object SparkEntry {
     val diagnosisMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
     sc.addFile(diagnosisMasterTableLocation)
     val diagnosisMasterTableUdfs = new DiagnosisMasterTableUDFs(SparkFiles.get("Diagnosis.csv"))
+    //    val diagMasterTableRddMap = sc.textFile(diagnosisMasterTableLocation)
+    //      .map(line=>line.split("\\|", -1))
+    //      .map(row => row(1).replace("\"","") -> Array(row(5).replace("\"",""), row(6).replace("\"",""), row(3).replace("\"",""), row(4).replace("\"","")))
+    //      .collectAsMap()
+    //    val diagMTBroadCast = sc.broadcast(diagMasterTableRddMap)
+    //    val diagnosisMasterTableUdfs = new DiagnosisMasterTableUDFsUsingBroadCast(diagMTBroadCast)
 
     val procedureMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Procedure.csv"
     sc.addFile(procedureMasterTableLocation)
     val procedureMasterTableUdfs = new ProcedureMasterTableUDFs(SparkFiles.get("Procedure.csv"))
+    //    val procMasterTableRddMap = sc.textFile(procedureMasterTableLocation)
+    //      .map(line=>line.split("\\|", -1))
+    //      .map(row => row(1).replace("\"","")+row(4).replace("\"","") -> Array(row(5).replace("\"",""), row(6).replace("\"",""), row(18).replace("\"",""), row(7).replace("\"","")))
+    //      .collectAsMap()
+    //    val procMTBroadCast = sc.broadcast(procMasterTableRddMap)
+    //    val procedureMasterTableUdfs = new ProcedureMasterTableUDFsUsingBroadCast(procMTBroadCast)
 
 
     //defining line delimiter for source files
@@ -64,15 +76,15 @@ object SparkEntry {
     val goldenRules = new GoldenRules(clientConfig.getEOC, clientConfig.getClientType)
     eligibilityTable = goldenRules.applyEligibilityGoldenRules(eligibilityTable)
 
-    //deleting the outputs if they exists
-    ScalaUtils.deleteResource(eligJobConfig.getSinkFilePath)
-    ScalaUtils.deleteResource(eligJobConfig.getIntMemberId)
-
     //eligibility validation output
     val eligRDD = eligibilityTable.rdd.map(row => row.toString().replace("[","").replace("]",""))
     //    OutputSavingFormatUtils.sequenceTupleFormats(eligRDD, eligJobConfig.getSinkFilePath, ",")
     //    OutputSavingFormatUtils.textCSVFormats(eligRDD, eligJobConfig.getSinkFilePath)
     OutputSavingFormatUtils.dataFrameToCSVFormat(eligibilityTable, eligJobConfig.getSinkFilePath)
+
+/*    val memberIdRdd = eligRDD.map(row => row(1)).distinct.zipWithUniqueId()
+    import sqlContext.implicits._
+    val memberIdDataFrame = memberIdRdd.toDF("dw_member_id", "intMemberId")*/
 
     //integer member id output
 //    val memberIdRDD = eligibilityTable.select("dw_member_id").distinct().rdd
@@ -98,9 +110,6 @@ object SparkEntry {
     medicalGoldenRulesApplied = diagnosisMasterTableUdfs.performDiagnosisMasterTable(medicalGoldenRulesApplied)
     medicalGoldenRulesApplied = procedureMasterTableUdfs.performProcedureMasterTable(medicalGoldenRulesApplied)
 
-    medicalGoldenRulesApplied.show
-    ScalaUtils.deleteResource(medicalJobConfig.getSinkFilePath)
-
     val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))
     //    OutputSavingFormatUtils.sequenceTupleFormats(medicalRDD, medicalJobConfig.getSinkFilePath, ",")
     OutputSavingFormatUtils.textCSVFormats(medicalRDD, medicalJobConfig.getSinkFilePath)
@@ -116,8 +125,6 @@ object SparkEntry {
     pharmacyTable.drop(pharmacyTable.col("dw_member_id_1"))
 
     pharmacyTable = goldenRules.applyPharmacyGoldenRules(pharmacyTable)
-
-    ScalaUtils.deleteResource(pharmacyJobConfig.getSinkFilePath)
 
     val pharmacyRDD = pharmacyTable.rdd.map(row => row.toString().replace("[","").replace("]",""))
     //    OutputSavingFormatUtils.sequenceTupleFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath, ",")
