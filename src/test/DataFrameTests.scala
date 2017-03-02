@@ -129,6 +129,27 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
     }
   }
 
+  test("merging/union testing of two dataframes of different size"){
+    var firstTableColumns = Seq("diag1", "diagDesc", "diag2")
+    var firstTableNextColumns = Seq("diag2")
+    var secondTableColumns = Seq("diagCode", "desc1")
+    var finalSecond = secondTableColumns ++ firstTableNextColumns
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+    import sqlContext.implicits._
+    var diagdf = Seq(("239", "", "1"), ("239.1", "", "2"), ("239.2", "", "3"), ("23.9", "", "4"), ("239.5", "", "4")).toDF(firstTableColumns:_*)
+    diagdf.createOrReplaceTempView("firstTable")
+    val masterdf = Seq(("239", "dfsadf"), ("239.1", "dfsdf"), ("239.2", "sdfs"), ("23.9", "dfadf"), ("239.5", "dddd")).toDF(secondTableColumns: _*)
+    masterdf.createOrReplaceTempView("secondTable")
+
+//    diagdf = diagdf.select(firstTableColumns.map(col):_*).union(masterdf.select(secondTableColumns.map(col):_*).("null as diag2"))
+    diagdf = sqlContext.sql("select * from firstTable Union select *, null as diag2 from secondTable")
+
+    diagdf.show
+
+    sparkContext.stop
+  }
+
   test("testing for number of tasks when data frame is converted to rdd"){
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
