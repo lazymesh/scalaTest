@@ -3,6 +3,7 @@ package test
 import main.scala.officework.doingWithClasses._
 import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, ProcedureMasterTableUDFs}
 import org.apache.spark.SparkFiles
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
 import org.apache.spark.sql.functions._
@@ -68,9 +69,9 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
       ("9", "grouperID9", "grouperDescription9", "superGrouperID9", "superGrouperDescription9"))
       .toDF("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
 
-    def diagnosisMasterTableUdfs = udf((value : String) =>{
-      if(!value.isEmpty) value else "Ungroupable"
-    })
+      def diagnosisMasterTableUdfs = udf((value : String) =>{
+        if(!value.isEmpty) value else "Ungroupable"
+      })
      for(i <- 1 to 9){
        diagCodes = diagCodes.join(masterdf, diagCodes("svc_diag_"+i+"_code") === masterdf("diagnosisCode"), "left")
          .withColumn("diag"+i+"_grouper_id", diagnosisMasterTableUdfs(masterdf("grouperID")))
@@ -82,96 +83,30 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
     sparkContext.stop()
   }
 
-  test("testing update on actual data") {
+  test("testing to get the latest from groups using window"){
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
+    import sqlContext.implicits._
+    // select only diag codes from medical table
+    var diagCodes = Seq(
+      ("0", "4", "2", "3", "4", "0", "6", "3", "9"),
+      ("0", "3", "4", "3", "4", "0", "6", "3", "9"),
+      ("0", "1", "3", "3", "4", "0", "6", "3", "9"),
+      ("1", "3", "4", "5", "1", "3", "4", "5", "1"),
+      ("1", "3", "4", "5", "1", "3", "4", "5", "1"),
+      ("1", "3", "4", "5", "1", "3", "4", "5", "1"),
+      ("2", "6", "2", "8", "2", "6", "6", "8", "2"),
+      ("2", "8", "8", "8", "2", "6", "6", "8", "2"),
+      ("2", "8", "1", "8", "2", "6", "6", "8", "2"),
+      ("3", "9", "9", "1", "3", "9", "9", "1", "3"))
+      .toDF("svc_diag_1_code", "svc_diag_2_code", "svc_diag_3_code", "svc_diag_4_code", "svc_diag_5_code",
+        "svc_diag_6_code", "svc_diag_7_code", "svc_diag_8_code", "svc_diag_9_code")
 
-    val masterTableLocation: String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
-    val medicalJobConfig = new JobCfgParameters("/emValidation_Medical.jobcfg")
-    val generateSchemas = new GenerateSchemas
-    val medicalSchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
+    val window = Window.partitionBy($"svc_diag_1_code").orderBy($"svc_diag_2_code".desc, $"svc_diag_3_code".desc)
+    diagCodes = diagCodes.withColumn("rn", row_number.over(window)).where($"rn" === 1).drop("rn")
 
-    val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
-    val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
+    diagCodes.show
 
-    val generateDataFrame = new GenerateDataFrame
-
-    var masterTableDF = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
-
-    sparkContext.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
-    val medicalDataRdd = sparkContext.textFile(medicalJobConfig.getSourceFilePath)
-
-    var medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
-    val masterTableLocation2: String = "Diagnosis.csv"
-
-    masterTableDF = masterTableDF.select("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
-
-    val masterTableBC = sparkContext.broadcast(masterTableDF)
-    val masterTableUdfs = new MasterTableUdfs(masterTableBC)
-
-    medicalTable = updateFromDiagnosisMT(medicalTable)
-    medicalTable.show
-    def diagnosisMasterTableUdfs = udf((value: String) => {
-      if (value != null) value else "Ungroupable"
-    })
-
-    def updateFromDiagnosisMT(medicalTable: DataFrame): DataFrame = {
-      var updatedMedical = medicalTable
-      for (i <- 1 to 9) {
-        updatedMedical = updatedMedical.join(masterTableBC.value, updatedMedical("svc_diag_" + i + "_code") === masterTableBC.value("diagnosisCode"), "left")
-          .withColumn("diag" + i + "_grouper_id", diagnosisMasterTableUdfs(masterTableBC.value("grouperID")))
-          .withColumn("diag" + i + "_grouper_desc", diagnosisMasterTableUdfs(masterTableBC.value("grouperDescription")))
-          .withColumn("diag" + i + "_supergrouper_id", diagnosisMasterTableUdfs(masterTableBC.value("superGrouperID")))
-          .withColumn("diag" + i + "_supergrouper_desc", diagnosisMasterTableUdfs(masterTableBC.value("superGrouperDescription")))
-          .drop("diagnosisCode", "grouperID", "grouperDescription", "superGrouperID", "superGrouperDescription")
-      }
-      updatedMedical
-    }
-  }
-
-  test("testing for number of tasks when data frame is converted to rdd"){
-    val sparkContext = sparkSession.sparkContext
-    val sqlContext = sparkSession.sqlContext
-
-    val medicalDataFileLocation = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Medical.csv"
-    val medicalJobConfig = new JobCfgParameters("/emValidation_Medical.jobcfg")
-
-    val generateSchemas = new GenerateSchemas
-    val medicalSchema = generateSchemas.dynamicSchema(medicalJobConfig.getInputLayoutFilePath)
-
-    sparkContext.hadoopConfiguration.set("textinputformat.record.delimiter", "^*~")
-    val medicalDataRdd = sparkContext.textFile(medicalDataFileLocation)
-
-    val generateDataFrame = new GenerateDataFrame
-    val medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
-
-    val goldenRules = new GoldenRules("2016-12-31", "medicare")
-    var medicalGoldenRulesApplied = goldenRules.applyMedialGoldenRules(medicalTable)
-
-    val procedureFunction = new ProcedureFunction
-    medicalGoldenRulesApplied = procedureFunction.performMedicalProcedureType(medicalGoldenRulesApplied)
-
-    val diagnosisMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Diagnosis.csv"
-    sparkContext.addFile(diagnosisMasterTableLocation)
-    val diagnosisMasterTableUdfs = new DiagnosisMasterTableUDFs(SparkFiles.get("Diagnosis.csv"))
-    medicalGoldenRulesApplied = diagnosisMasterTableUdfs.performDiagnosisMasterTable(medicalGoldenRulesApplied)
-
-    val procedureMasterTableLocation : String = "/home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Procedure.csv"
-    sparkContext.addFile(procedureMasterTableLocation)
-    val procedureMasterTableUdfs = new ProcedureMasterTableUDFs(SparkFiles.get("Procedure.csv"))
-    medicalGoldenRulesApplied = procedureMasterTableUdfs.performProcedureMasterTable(medicalGoldenRulesApplied)
-
-    val medicalRDD = medicalGoldenRulesApplied.rdd.map(row => row.toString().replace("[","").replace("]",""))
-    OutputSavingFormatUtils.textCSVFormats(medicalRDD, medicalJobConfig.getSinkFilePath)
-
-    val pharmacyJobConfig = new JobCfgParameters("/emValidation_Pharmacy.jobcfg")
-    val pharmacySchema = generateSchemas.dynamicSchema(pharmacyJobConfig.getInputLayoutFilePath)
-    val pharmacyDataRdd = sparkContext.textFile(pharmacyJobConfig.getSourceFilePath)
-    var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, pharmacyDataRdd, pharmacySchema)
-
-    pharmacyTable = goldenRules.applyPharmacyGoldenRules(pharmacyTable)
-
-    val pharmacyRDD = pharmacyTable.rdd.repartition(2).map(row => row.toString().replace("[","").replace("]",""))
-    OutputSavingFormatUtils.textCSVFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath)
+    sparkContext.stop()
   }
 }

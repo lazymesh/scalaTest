@@ -30,7 +30,7 @@ class MasterTableGroupers extends scala.Serializable{
     val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
     val generateDataFrame = new GenerateDataFrame
     val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
-    val masterTableDF = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
+    val masterTableDF = generateDataFrame.createDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema, "\\|")
     masterTableDF
   }
 
@@ -137,7 +137,7 @@ class MasterTableGroupers extends scala.Serializable{
     val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
     val generateDataFrame = new GenerateDataFrame
     val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
-    val masterTableDF = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
+    val masterTableDF = generateDataFrame.createDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema, "\\|")
 
     var diagCode: String = ""
     var diagGrouperId: String = ""

@@ -69,8 +69,8 @@ object SparkEntry {
     val medicalDataRdd = sc.textFile(medicalJobConfig.getSourceFilePath)
 
     //data frame generation for input source
-    var eligibilityTable = generateDataFrame.createDataFrame(sqlContext, eligibilityDataRdd, eligSchema)
-    val medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema)
+    var eligibilityTable = generateDataFrame.createDataFrame(sqlContext, eligibilityDataRdd, eligSchema, "\\^%~")
+    val medicalTable = generateDataFrame.createDataFrame(sqlContext, medicalDataRdd, medicalSchema, "\\^%~")
 
     //applying golden rules
     val goldenRules = new GoldenRules(clientConfig.getEOC, clientConfig.getClientType)
@@ -119,7 +119,7 @@ object SparkEntry {
     val pharmacyJobConfig = new JobCfgParameters("/emValidation_Pharmacy.jobcfg")
     val pharmacySchema = generateSchemas.dynamicSchema(pharmacyJobConfig.getInputLayoutFilePath)
     val pharmacyDataRdd = sc.textFile(pharmacyJobConfig.getSourceFilePath)
-    var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, pharmacyDataRdd, pharmacySchema)
+    var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, pharmacyDataRdd, pharmacySchema, "\\^%~")
 
     pharmacyTable = pharmacyTable.join(memberIdRDD, pharmacyTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "inner")
     pharmacyTable.drop(pharmacyTable.col("dw_member_id_1"))

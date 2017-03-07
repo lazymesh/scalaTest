@@ -1,7 +1,8 @@
 package main.scala.officework.doingWithClasses.mara
 
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.{col, lit, udf}
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions.{col, lit, row_number, udf}
 
 /**
   * Created by ramaharjan on 3/2/17.
@@ -32,7 +33,8 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
   val inputTypeFlagRx = Vector(1)
   val inputTypeFlagMed = Vector(0)
 
-  val sortDate = "sortDate"
+  val sortDateColumn : String = "sortDate"
+  val sortDate = Vector("sortDate")
 
   // Eligibility fields
   val eligRetain = commonColumns ++ eligOnlyColumns
@@ -40,41 +42,54 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
   val insertToEligValues = medOnlyValues ++ rxOnlyValues ++ commonMedRxValues ++ inputTypeFlagElig
 
   // Medical fields
-  var medRetain = commonColumns ++ commonMedRxColumns ++ medOnlyColumns
+  val medRetain = commonColumns ++ commonMedRxColumns ++ medOnlyColumns
   val insertToMedColumns = rxOnlyColumns ++ eligOnlyColumns ++ inputTypeFlagColumn
   val insertToMedValues = rxOnlyValues ++ eligOnlyValues ++ inputTypeFlagMed
 
   // Rx fields
-  var rxRetain = commonColumns ++ commonMedRxColumns ++ rxOnlyColumns
+  val rxRetain = commonColumns ++ commonMedRxColumns ++ rxOnlyColumns
   val insertToRxColumns = medOnlyColumns ++ eligOnlyColumns ++ inputTypeFlagColumn
   val insertToRxValues = medOnlyValues ++ eligOnlyValues ++ inputTypeFlagRx
 
+  val finalOrderingColumns = commonColumns ++ eligOnlyColumns ++ medOnlyColumns ++ commonMedRxColumns ++ rxOnlyColumns ++ inputTypeFlagColumn ++ sortDate
+
   def setSortDate = udf((date: String) => date )
 
-  //todo groupfilter of elig
-  eligDF = eligDF.select(eligRetain.map(col):_*)
-  for(column <- 0 until insertToEligColumns.size){
-    eligDF = eligDF.withColumn(insertToEligColumns(column), lit(insertToEligValues(column)))
+  def maraCalculator() : Unit = {
+
+    //todo groupfilter of elig
+    eligDF = eligDF.select(eligRetain.map(col): _*)
+    for (column <- 0 until insertToEligColumns.size) {
+      eligDF = eligDF.withColumn(insertToEligColumns(column), lit(insertToEligValues(column)))
+    }
+    eligDF = eligDF.withColumn(sortDateColumn, setSortDate(eligDF("ins_med_term_date")))
+    eligDF = eligDF.select(finalOrderingColumns.map(col):_*)
+
+    val window = Window.partitionBy(col("dw_member_id")).orderBy(col("ins_med_term_date").desc, col("ins_med_eff_date").desc, col("mbr_relationship_code").desc, col("ins_emp_group_id").desc)
+    val latestEligDF = eligDF.withColumn("rn", row_number.over(window)).where(col("rn") === 1).drop(col("rn")).withColumn(inputTypeFlagColumn(0), lit(inputTypeFlagEligLatest(0)))
+
+    //todo groupfilter of medical
+    medDF = medDF.select(medRetain.map(col): _*)
+    for (column <- 0 until insertToMedColumns.size) {
+      medDF = medDF.withColumn(insertToMedColumns(column), lit(insertToMedValues(column)))
+    }
+    medDF = medDF.withColumn(sortDateColumn, setSortDate(medDF("svc_service_frm_date")))
+    //todo convert "svc_service_frm_date", "svc_service_to_date", "rev_paid_date", "ins_med_eff_date", "ins_med_term_date" to date
+    medDF = medDF.select(finalOrderingColumns.map(col):_*)
+
+    //todo groupfilter of pharmacy
+    rxDF = rxDF.withColumnRenamed("svc_service_frm_date", "rx_svc_filled_date")
+    rxDF = rxDF.select(rxRetain.map(col): _*)
+    for (column <- 0 until insertToRxColumns.size) {
+      rxDF = rxDF.withColumn(insertToRxColumns(column), lit(insertToRxValues(column)))
+    }
+    rxDF = rxDF.withColumn(sortDateColumn, setSortDate(rxDF("rx_svc_filled_date")))
+    //todo convert "rx_svc_filled_date","ins_med_eff_date", "ins_med_term_date" to date
+    rxDF = rxDF.select(finalOrderingColumns.map(col):_*)
+
+    var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
+
+
+
   }
-  eligDF = eligDF.withColumn(sortDate, setSortDate(eligDF("ins_med_term_date")))
-
-  //todo groupfilter of medical
-  medDF = medDF.select(medRetain.map(col):_*)
-  for(column <- 0 until insertToMedColumns.size){
-    medDF = medDF.withColumn(insertToMedColumns(column), lit(insertToMedValues(column)))
-  }
-  medDF = medDF.withColumn(sortDate, setSortDate(medDF("svc_service_frm_date")))
-  //todo convert "svc_service_frm_date", "svc_service_to_date", "rev_paid_date", "ins_med_eff_date", "ins_med_term_date" to date
-
-  //todo groupfilter of pharmacy
-  rxDF = rxDF.withColumnRenamed("svc_service_frm_date", "rx_svc_filled_date")
-  rxDF = rxDF.select(rxRetain.map(col):_*)
-  for(column <- 0 until insertToRxColumns.size){
-    rxDF = rxDF.withColumn(insertToRxColumns(column), lit(insertToRxValues(column)))
-  }
-  rxDF = rxDF.withColumn(sortDate, setSortDate(rxDF("rx_svc_filled_date")))
-  //todo convert "rx_svc_filled_date","ins_med_eff_date", "ins_med_term_date" to date
-
-
-
 }

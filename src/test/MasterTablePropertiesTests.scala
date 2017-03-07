@@ -137,7 +137,7 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
     val generateDataFrame = new GenerateDataFrame
 
     val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
-    val masterTableDataFrame = generateDataFrame.createMasterDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema)
+    val masterTableDataFrame = generateDataFrame.createDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema, "\\|")
 
     var medicalDiags = medicalDataCreation
 /*    val broadCastedDiagMT = sparkContext.broadcast(masterTableDataFrame)
