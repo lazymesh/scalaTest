@@ -1,0 +1,16 @@
+Company=Deerwalk39
+Lives=30000
+Expire=10-16-2017
+OPRB=False
+OPCNT=True
+MDRX=True
+MDDX=True
+MDCX=True
+HHS=False
+MC=False
+GRX=False
+ICD10WHO=False
+Issued=rO0ABXNyAA5qYXZhLnV0aWwuRGF0ZWhqgQFLWXQZAwAAeHB3CAAAAVjQtP5aeA==
+UnsignedFeature=This text can be changed while the license will be still valid
+SignCode=FF1F
+Signature=302D0215008CD7385EE293C986113C2660D1D262349C6DCAF2021433749AFD2E8A978E10CFC7FB903BC7A558EAADDE
