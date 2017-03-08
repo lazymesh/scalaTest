@@ -1,8 +1,16 @@
 package main.scala.officework.doingWithClasses.mara
 
+
+import java.text.SimpleDateFormat
+
+import main.scala.officework.doingWithObjects.DateUtils
+import milliman.mara.exception.{MARAClassLoaderException, MARALicenseException}
+import milliman.mara.model.{InputEnums, ModelProcessor, ModelProperties}
+import org.apache.spark.SparkFiles
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lit, row_number, udf}
+
 
 /**
   * Created by ramaharjan on 3/2/17.
@@ -88,8 +96,50 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
     rxDF = rxDF.select(finalOrderingColumns.map(col):_*)
 
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
+    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
+
+//    combined.map(row => {println(row)} )
 
 
+  }
 
+
+  def prepareModelProcessor(endOfCycleDate: Long): ModelProcessor = {
+    System.out.println("License File Location : " + SparkFiles.get("mara.lic"))
+    System.out.println("Mara Data Folder Location: " + SparkFiles.getRootDirectory())
+    try {
+      new ModelProcessor(setupModelProperties(endOfCycleDate))
+    }
+    catch {
+      case e: MARAClassLoaderException => {
+        e.printStackTrace()
+        System.out.println("MaraClassLoader Exception occurred in setup")
+        throw new RuntimeException(e)
+      }
+      case e: MARALicenseException => {
+        System.out.println("MaraLicense exception occurred in setup")
+        e.printStackTrace()
+        throw new RuntimeException(e)
+      }
+    }
+  }
+
+
+  private def setupModelProperties(endOfCycleDate: Long): ModelProperties = {
+    val modelProperties = new ModelProperties
+    var maraFolder = SparkFiles.getRootDirectory()
+
+    val modelList = new java.util.ArrayList[InputEnums.ModelName]
+    modelList.add(InputEnums.ModelName.CXPROLAG0)
+    modelList.add(InputEnums.ModelName.CXCONLAG0)
+    val df_mmddyyyy = new SimpleDateFormat("MM/dd/yyyy")
+
+    modelProperties.setLicenseFileLocation(SparkFiles.get("mara.lic"))
+    modelProperties.setMaraDataFolderLocation(maraFolder)
+    modelProperties.setOutputPercentContributions(true)
+    modelProperties.setModelList(modelList)
+    modelProperties.setEndBasePeriodDate(df_mmddyyyy.format(endOfCycleDate))
+
+    modelProperties
   }
 }

@@ -27,7 +27,7 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
 
   }
 
-  test("updating a table using another tables value "){
+  test("updating a table using another tables value after joining "){
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     import sqlContext.implicits._
@@ -38,6 +38,16 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
       .withColumn("diagDesc", masterdf("desc1"))
       .drop("diagCode", "desc1")
     diagdf.show
+
+    sparkContext.stop
+  }
+
+  test("aggregation on a dataframe") {
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+    import sqlContext.implicits._
+    val ds = Seq((1, 1, 2L), (1, 2, 3L), (1, 3, 4L), (2, 1, 5L)).toDF("one", "two", "three")
+    ds.groupBy("one").agg(count("*"),sum("two"), sum("three"), max("two")).show
 
     sparkContext.stop
   }
