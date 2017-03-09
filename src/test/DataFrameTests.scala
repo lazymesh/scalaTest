@@ -1,12 +1,9 @@
 package test
 
-import main.scala.officework.doingWithClasses._
-import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, ProcedureMasterTableUDFs}
-import org.apache.spark.SparkFiles
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.scalatest.{BeforeAndAfterEach, FunSuite}
 import org.apache.spark.sql.functions._
+import org.scalatest.{BeforeAndAfterEach, FunSuite}
 
 /**
   * Created by ramaharjan on 2/2/17.
@@ -46,8 +43,8 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     import sqlContext.implicits._
-    val ds = Seq((1, 1, 2L), (1, 2, 3L), (1, 3, 4L), (2, 1, 5L)).toDF("one", "two", "three")
-    ds.groupBy("one").agg(count("*"),sum("two"), sum("three"), max("two")).show
+    val df = Seq((1, 1, 2L), (1, 2, 3L), (1, 3, 4L), (2, 1, 5L)).toDF("one", "two", "three")
+    df.groupBy("one").agg(count("*"),sum("two"), sum("three"), max("two")).show
 
     sparkContext.stop
   }
