@@ -15,11 +15,10 @@ import scala.collection.mutable
 class MaraUDAF extends UserDefinedAggregateFunction {
   var sourceSchema : StructType = _
   var bufferedSchema : StructType = _
-  var returnDataType : DataType = _
-  DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType);
+  var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType)
   var mutableBuffer : MutableAggregationBuffer = _
 
-  def MaraUDAF()
+  def MaraUDAF(inputSchema : StructType)
   {
     //inputSchema : This UDAF can accept 2 inputs which are of type Integer
     val inputFields : util.ArrayList[StructField] = new util.ArrayList[StructField]
@@ -33,13 +32,13 @@ class MaraUDAF extends UserDefinedAggregateFunction {
     val bufferFields : util.ArrayList[StructField] = new util.ArrayList[StructField]
     val bufferStructField1 : StructField = DataTypes.createStructField("totalCount", DataTypes.IntegerType, true)
     bufferFields.add(bufferStructField1)
-    val bufferStructField2 : StructField = DataTypes.createStructField("femaleCount",DataTypes.IntegerType, true);
-    bufferFields.add(bufferStructField2);
-    val bufferStructField3 :StructField  = DataTypes.createStructField("maleCount",DataTypes.IntegerType, true);
-    bufferFields.add(bufferStructField3);
+    val bufferStructField2 : StructField = DataTypes.createStructField("femaleCount",DataTypes.IntegerType, true)
+    bufferFields.add(bufferStructField2)
+    val bufferStructField3 :StructField  = DataTypes.createStructField("maleCount",DataTypes.IntegerType, true)
+    bufferFields.add(bufferStructField3)
     val bufferStructField4 : StructField = DataTypes.createStructField("outputMap",DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType), true);
-    bufferFields.add(bufferStructField4);
-    bufferedSchema = DataTypes.createStructType(bufferFields);
+    bufferFields.add(bufferStructField4)
+    bufferedSchema = DataTypes.createStructType(bufferFields)
   }
 
   /**
@@ -98,7 +97,7 @@ class MaraUDAF extends UserDefinedAggregateFunction {
   @Override
   def evaluate(buffer : Row) : Any = {
     //In this method we are preparing a final map that will be returned as output
-    var op : mutable.HashMap[String, Any]  = new mutable.HashMap[String, Any]
+    var op : mutable.HashMap[String, Any]  = mutable.HashMap.empty[String, Any]
     op += ("Total" -> mutableBuffer.getInt(0))
     op += ("dominant" -> "Male")
     if(buffer.getInt(1) > mutableBuffer.getInt(2))
