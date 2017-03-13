@@ -89,7 +89,9 @@ class UDAFTests extends FunSuite with BeforeAndAfterEach {
 
     //Run query
 //    sqlContext.sql("SELECT city , count['dominant'] as Dominant, count['Total'] as Total from(select city, uf(Female,Male) as count from cities group by (city)) temp").show(false)
-    val tempdf = populationDF.groupBy(col("city")).agg(sparkUDAF(col("Female"), col("Male"))("Total").as("Total")).show
+    val udaf = sparkUDAF(col("Female"), col("Male"))
+    val tempdf = populationDF.groupBy(col("city")).agg(udaf("dominant").as("Dominant"), udaf("Total").as("Total"))
+    tempdf.show
   }
 }
 
@@ -124,6 +126,7 @@ private class ScalaAggregateFunction extends UserDefinedAggregateFunction {
 
   // buffers are merged by adding the single values in them
   def merge(buffer1: MutableAggregationBuffer, buffer2: Row): Unit = {
+    println(":::::::::::::::::::::::::::::"+buffer1.getDouble(0)+" "+buffer2.getDouble(0))
     buffer1.update(0, buffer1.getDouble(0) + buffer2.getDouble(0))
   }
 

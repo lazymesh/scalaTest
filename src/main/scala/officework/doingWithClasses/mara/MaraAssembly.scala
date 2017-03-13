@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat
 import main.scala.officework.doingWithObjects.DateUtils
 import milliman.mara.exception.{MARAClassLoaderException, MARALicenseException}
 import milliman.mara.model.{InputEnums, ModelProcessor, ModelProperties}
+import officework.doingWithClasses.mara.MaraUDAF
 import org.apache.spark.SparkFiles
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
@@ -96,7 +97,10 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
     rxDF = rxDF.select(finalOrderingColumns.map(col):_*)
 
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
-    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
+    val maraUdaf = new MaraUDAF(combined.schema)
+    combined = combined.groupBy("dw_member_id").agg(maraUdaf(finalOrderingColumns.map(col):_*)("prospectiveInpatient").as("prospectiveInpatient"), maraUdaf(finalOrderingColumns.map(col):_*)("prospectivePharmacy").as("prospectivePharmacy"))
+    combined.show(false)
+//    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
 
 //    combined.map(row => {println(row)} )
 
