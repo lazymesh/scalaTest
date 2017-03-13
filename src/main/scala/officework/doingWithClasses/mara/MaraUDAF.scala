@@ -23,22 +23,15 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
 
   //BufferSchema : This UDAF can hold calculated data in below mentioned buffers
   val bufferFields : util.ArrayList[StructField] = new util.ArrayList[StructField]
-  val bufferStructField1 : StructField = DataTypes.createStructField("totalCount", DataTypes.DoubleType, true)
+  val bufferStructField1 : StructField = DataTypes.createStructField("memberInfo", DataTypes.createArrayType(DataTypes.StringType), true)
   bufferFields.add(bufferStructField1)
-  val bufferStructField2 : StructField = DataTypes.createStructField("femaleCount",DataTypes.IntegerType, true)
-  bufferFields.add(bufferStructField2)
-  val bufferStructField3 :StructField  = DataTypes.createStructField("maleCount",DataTypes.IntegerType, true)
-  bufferFields.add(bufferStructField3)
-  val bufferStructField4 : StructField = DataTypes.createStructField("outputMap",DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType), true);
+  val bufferStructField4 : StructField = DataTypes.createStructField("outputMap",DataTypes.createMapType(DataTypes.StringType, DataTypes.DoubleType), true);
   bufferFields.add(bufferStructField4)
   bufferedSchema = DataTypes.createStructType(bufferFields)
-  var testValue = 0.0
+  var maraBuffer : MaraBuffer = _
 
-  /**
-    * This method will determine the input schema of this UDAF
-    */
-  @Override
-  def  inputSchema() : StructType =  sourceSchema
+  // This is the input fields for your aggregate function.
+  override def  inputSchema() : StructType =  sourceSchema
 
   /**
     * This method determines which bufferSchema will be used
@@ -63,8 +56,8 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     */
   @Override
   def initialize(buffer : MutableAggregationBuffer) : Unit = {
-    testValue += 1.0
-    buffer(0)=0.0
+    maraBuffer = new MaraBuffer
+    buffer(0)= new util.ArrayList[String]
   }
 
   /**
@@ -72,8 +65,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     */
   @Override
   def update(buffer : MutableAggregationBuffer, input : Row) : Unit = {
-    buffer(0)= testValue
-    println(testValue+" "+input.get(0) +" "+buffer.getDouble(0))
+    maraBuffer.populate(buffer, input)
   }
 
   /**
@@ -81,7 +73,9 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     */
   @Override
   def merge(buffer : MutableAggregationBuffer, input : Row) : Unit = {
-    buffer.update(0, buffer.getDouble(0)+input.getDouble(0))
+    val mergedList = (buffer.getList(0).toArray()) ++ (input.getList(0)).toArray()
+    buffer.update(0, mergedList)
+    println(buffer.getList(0)+"(((((((((((((((((((((((((((((((((((((( "+input.getList(0))
   }
 
   /**
@@ -89,6 +83,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     */
   @Override
   def evaluate(buffer : Row) : Any = {
-    HashMap("prospectiveInpatient" -> buffer.getDouble(0), "prospectivePharmacy"->0.9)
+    println("LLLLLLLLLL "+buffer.getList(0))
+    HashMap("prospectiveInpatient" -> 2.0, "prospectivePharmacy"->0.9)
   }
 }
