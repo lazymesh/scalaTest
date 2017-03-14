@@ -2,6 +2,7 @@ package officework.doingWithClasses.mara
 
 import java.io.IOException
 
+import main.scala.officework.doingWithObjects.DateUtils
 import org.apache.spark.sql.Row
 
 /**
@@ -10,6 +11,7 @@ import org.apache.spark.sql.Row
 object MaraUtils {
 
   var endOfCycleDate : String = _
+  val FUTURE_DATE = DateUtils.convertStringToLong("2099-12-31")
 
   val commonColumns = Vector("dw_member_id", "ins_emp_group_id", "ins_emp_group_name", "ins_division_id", "ins_division_name", "ins_carrier_id", "ins_carrier_name", "ins_plan_id", "ins_plan_type_code", "udf16", "udf17", "udf18", "udf19", "udf20", "udf21", "udf22", "udf23", "udf24", "udf25")
 
@@ -57,6 +59,8 @@ object MaraUtils {
     val lastName = input.getString(MaraUtils.finalOrderingColumns.indexOf("mbr_last_name"))
     lastName + ", " + firstName + (if (!middleName.isEmpty) " " + middleName else "")
   }
+
+  def isClaimWithinTwelveMonths(serviceDate: Long, dataPeriodStartDate: Long, dataPeriodEndDate: Long): Boolean = serviceDate > dataPeriodStartDate && serviceDate <= dataPeriodEndDate
 
   /**
     * Takes claim line and returns a inputMedClaim<br></br>
@@ -122,27 +126,19 @@ object MaraUtils {
     * @param rxLine pharmacy claim line
     * @return an inputRxClaim object
     */
-  def getInputRxClaim(rxLine: TupleEntry): InputRxClaim = {
-    val inputRxClaim = new InputRxClaim
-    inputRxClaim.setMemberId(rxLine.getString("dw_member_id"))
-    inputRxClaim.setNdcCode(rxLine.getString("svc_ndc_code"))
-    inputRxClaim.setClaimId(rxLine.getString("rev_transaction_num"))
-    inputRxClaim.setFillDate(new Date(rxLine.getObject("rx_svc_filled_date").asInstanceOf[Long]))
-    inputRxClaim.setProviderId(rxLine.getString("prv_prescriber_id"))
-    val billed_amount = if (StringUtils.isNull(rxLine.getString("rev_billed_amt"))) 0D
-    else rxLine.getDouble("rev_billed_amt")
-    val paid_amount = if (StringUtils.isNull(rxLine.getString("rev_paid_amt"))) 0D
-    else rxLine.getDouble("rev_paid_amt")
-    val daysOfSupply = if (StringUtils.isNull(rxLine.getString("svc_days_of_supply"))) 0
-    else rxLine.getInteger("svc_days_of_supply")
-    val svcQuantity = if (StringUtils.isNull(rxLine.getString("svc_unit_qty"))) 0
-    else rxLine.getInteger("svc_unit_qty")
-    inputRxClaim.setCharged(billed_amount)
-    inputRxClaim.setPaid(paid_amount)
-    inputRxClaim.setDaysSupplied(daysOfSupply)
-    inputRxClaim.setQtyDispensed(svcQuantity)
-    if (!StringUtils.isNull(rxLine.getString("rev_allowed_amt")) && rxLine.getDouble("rev_allowed_amt") > 0D) inputRxClaim.setAllowed(rxLine.getDouble("rev_allowed_amt"))
-    else inputRxClaim.setAllowed(paid_amount)
+ */
+  def getInputRxClaim(rxLine: Row): String = {
+    var inputRxClaim = ""
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_ndc_code")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("rev_transaction_num")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("prv_prescriber_id")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("rev_billed_amt")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_days_of_supply")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_unit_qty")) + "::"
+    inputRxClaim = inputRxClaim + rxLine.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt"))
     inputRxClaim
-  }*/
+  }
 }

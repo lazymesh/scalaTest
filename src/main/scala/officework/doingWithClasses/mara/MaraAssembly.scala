@@ -59,7 +59,7 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
 
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
     val maraUdaf = new MaraUDAF(combined.schema)
-    combined = combined.groupBy("dw_member_id").agg(maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveInpatient").as("prospectiveInpatient"))
+    combined = combined.orderBy("inputTypeFlag").groupBy("dw_member_id").agg(maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveInpatient").as("prospectiveInpatient"))
     combined.show(false)
 //    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
 

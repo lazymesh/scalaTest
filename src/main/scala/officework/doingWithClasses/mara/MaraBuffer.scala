@@ -4,18 +4,25 @@ import java.util
 import java.util.Date
 
 import main.scala.officework.doingWithObjects.DateUtils
+import milliman.mara.model.InputRxClaim
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.MutableAggregationBuffer
 import org.apache.spark.sql.types.StructField
+import org.joda.time.DateTime
 
 /**
   * Created by ramaharjan on 3/13/17.
   */
 class MaraBuffer {
 
+  var currentCycleEndDate = DateUtils.convertStringToLong(MaraUtils.endOfCycleDate)
+  var dataPeriodStartDate = new DateTime(currentCycleEndDate).minusMonths(12).getMillis
+  val eligibleDateRanges = new util.TreeMap[Long, Long]
+  val inputRxClaimList = new util.ArrayList[String]
 
   def populate(buffer : MutableAggregationBuffer, input : Row): Unit ={
     val inputTypeFlag = input.getInt(MaraUtils.finalOrderingColumns.indexOf("inputTypeFlag"))
+    println(input.getString(0)+" OOOOOOOOOOOOOOOOOOOOOOOO "+inputTypeFlag)
     val memberFields : util.ArrayList[String] = new util.ArrayList[String]
     if (inputTypeFlag == (MaraUtils.inputTypeFlagEligLatest(0))) {
       //setting demographics from the latest eligibility record.
@@ -67,7 +74,7 @@ class MaraBuffer {
       memberFields.add(ins_plan_type_code)
       val integer_member_id = input.getString(MaraUtils.finalOrderingColumns.indexOf("integer_member_id"))
       memberFields.add(integer_member_id)
-
+      buffer.update(3, input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")))
 
       //if the client contains groupwise processing then end cycle dates varies according to groups
 /*      if (this.groupWiseProcessing.equalsIgnoreCase("groupWiseProcess")) {
@@ -79,7 +86,6 @@ class MaraBuffer {
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagElig(0))) {
       //inputFlagType --> 2
-      println("::::::::::: "+input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
       var effDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
       var termDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_term_date")))
 
@@ -89,33 +95,34 @@ class MaraBuffer {
       }
       else termDate = DateUtils.getEligibleToDate(termDate).getMillis
       val currentCycleEndDate = new DateTime(endOfCycleDate).plusMonths(decrease_month).dayOfMonth.withMaximumValue.getMillis*/
-     /* if (currentCycleEndDate > effDate && currentCycleEndDate <= termDate) isMemberActive = true
+      if (currentCycleEndDate > effDate && currentCycleEndDate <= termDate) {
+        buffer.update(1, true)
+        addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
+        buffer.update(2, eligibleDateRanges)
+      }
       //adding eligible date ranges
-      addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
-      paidAmount.put(entry.getString("ins_emp_group_id"), 0D)
+      //todo summable maps
+/*      paidAmount.put(entry.getString("ins_emp_group_id"), 0D)
       allowedAmount.put(entry.getString("ins_emp_group_id"), 0D)*/
     }
-/*    else if (inputTypeFlag.matches(MaraUtils.INPUT_TYPE_Pharmacy)) {
+    else if (inputTypeFlag == (MaraUtils.inputTypeFlagRx(0))) {
       //inputFlagType --> 1
-      if (!isMemberActive) {
-        //no need to continue if member is not active
-        System.out.println("Member " + entry.getString("dw_member_id") + " is inactive")
-        break //todo: break is not supported
-      }
-      val serviceDate = entry.getObject("rx_svc_filled_date").asInstanceOf[Long]
-      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
+      val serviceDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date")))
+/*      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
       else entry.getDouble("rev_paid_amt")
       val allowed_amount = if (StringUtils.isNull(entry.getString("rev_allowed_amt"))) 0D
-      else entry.getDouble("rev_allowed_amt")
-      if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, dataPeriodEndDate)) {
-        totalRxPaid += paid_amount
-        totalRxAllowedAmt += allowed_amount
-        inputRxClaimList.add(MaraUtils.getInputRxClaim(entry))
-        paidAmount.put(entry.getString("ins_emp_group_id"), paid_amount)
-        allowedAmount.put(entry.getString("ins_emp_group_id"), allowed_amount)
+      else entry.getDouble("rev_allowed_amt")*/
+      println(input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")) +" "+input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date"))+" UUUUUUUUUUUUUUUUUUUUUUUUUUUUU "+MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate))
+      if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate)) {
+//        totalRxPaid += paid_amount
+//        totalRxAllowedAmt += allowed_amount
+        //        paidAmount.put(entry.getString("ins_emp_group_id"), paid_amount)
+        //        allowedAmount.put(entry.getString("ins_emp_group_id"), allowed_amount)
+        println("KKKKKKKKKKKKKKKK "+MaraUtils.getInputRxClaim(input))
+//        buffer.update(4, inputRxClaimList.add(MaraUtils.getInputRxClaim(input)))
       }
     }
-    else if (inputTypeFlag.matches(MaraUtils.INPUT_TYPE_Medical)) {
+/*    else if (inputTypeFlag.matches(MaraUtils.INPUT_TYPE_Medical)) {
       //inputFlagType --> 0
       if (!isMemberActive) {
         //no need to continue if member is not active
@@ -142,6 +149,21 @@ class MaraBuffer {
         }
       }
     }*/
+  }
+
+  private def addEligibleDateRanges(eligibleDateRanges: util.TreeMap[Long, Long], effectiveDate: Long, terminationDate: Long) {
+    var effDate = effectiveDate
+    var termDate = terminationDate
+    if (effDate < termDate) {
+      if (termDate == MaraUtils.FUTURE_DATE) termDate = currentCycleEndDate
+      if (termDate > currentCycleEndDate) termDate = currentCycleEndDate
+      if (effDate < dataPeriodStartDate) effDate = dataPeriodStartDate
+
+      if (!eligibleDateRanges.isEmpty && eligibleDateRanges.containsKey(effectiveDate) && (eligibleDateRanges.get(effectiveDate) > terminationDate))
+        eligibleDateRanges.put(effectiveDate, eligibleDateRanges.get(effectiveDate))
+      else
+        eligibleDateRanges.put(effectiveDate, terminationDate)
+    }
   }
 
 }

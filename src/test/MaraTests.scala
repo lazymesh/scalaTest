@@ -60,7 +60,7 @@ class MaraTests extends FunSuite with BeforeAndAfterEach {
     sparkContext.addFile(dfsWorkingDir+mara2DatFile)
     sparkContext.addFile(dfsWorkingDir+maraLicenseFile)
 
-    val maraAssembly = new MaraAssembly(eligTable, medicalTable, pharmacyTable, "2017-01-30")
+    val maraAssembly = new MaraAssembly(eligTable, medicalTable, pharmacyTable, "2011-01-30")
     maraAssembly.maraCalculator
 
     sparkContext.stop
