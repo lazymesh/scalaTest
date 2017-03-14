@@ -3,6 +3,7 @@ package officework.doingWithClasses.mara
 import java.util
 import java.util.Date
 
+import main.scala.officework.doingWithObjects.DateUtils
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.MutableAggregationBuffer
 import org.apache.spark.sql.types.StructField
@@ -16,9 +17,7 @@ class MaraBuffer {
   def populate(buffer : MutableAggregationBuffer, input : Row): Unit ={
     val inputTypeFlag = input.getInt(MaraUtils.finalOrderingColumns.indexOf("inputTypeFlag"))
     val memberFields : util.ArrayList[String] = new util.ArrayList[String]
-    println(input.getString(0)+inputTypeFlag+":::::::::::::::::::::::::::::::::::::::: "+MaraUtils.inputTypeFlagEligLatest(0))
     if (inputTypeFlag == (MaraUtils.inputTypeFlagEligLatest(0))) {
-      //inputFlagType --> 3
       //setting demographics from the latest eligibility record.
       val mbrDob = input.getString(MaraUtils.finalOrderingColumns.indexOf("mbr_dob"))
       memberFields.add(mbrDob)
@@ -78,23 +77,25 @@ class MaraBuffer {
       context.modelProcessor.modelProcessorMARA.setEndModelPeriodDate(new Date(endOfCycleDate))*/
       buffer.update(0, memberFields)
     }
-/*    else if (inputTypeFlag.matches(MaraUtils.INPUT_TYPE_Eligibility)) {
+    else if (inputTypeFlag == (MaraUtils.inputTypeFlagElig(0))) {
       //inputFlagType --> 2
-      var effDate = entry.getObject("ins_med_eff_date").asInstanceOf[Long]
-      var termDate = entry.getObject("ins_med_term_date").asInstanceOf[Long]
-      if (eligibleDate.equalsIgnoreCase("increase")) {
+      println("::::::::::: "+input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
+      var effDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
+      var termDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_term_date")))
+
+/*      if (eligibleDate.equalsIgnoreCase("increase")) {
         effDate = DateUtils.getIncreaseEligibleFromDate(effDate).getMillis
         termDate = DateUtils.getMaxEligibleToDate(termDate).getMillis
       }
       else termDate = DateUtils.getEligibleToDate(termDate).getMillis
-      val currentCycleEndDate = new DateTime(endOfCycleDate).plusMonths(decrease_month).dayOfMonth.withMaximumValue.getMillis
-      if (currentCycleEndDate > effDate && currentCycleEndDate <= termDate) isMemberActive = true
+      val currentCycleEndDate = new DateTime(endOfCycleDate).plusMonths(decrease_month).dayOfMonth.withMaximumValue.getMillis*/
+     /* if (currentCycleEndDate > effDate && currentCycleEndDate <= termDate) isMemberActive = true
       //adding eligible date ranges
       addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
       paidAmount.put(entry.getString("ins_emp_group_id"), 0D)
-      allowedAmount.put(entry.getString("ins_emp_group_id"), 0D)
+      allowedAmount.put(entry.getString("ins_emp_group_id"), 0D)*/
     }
-    else if (inputTypeFlag.matches(MaraUtils.INPUT_TYPE_Pharmacy)) {
+/*    else if (inputTypeFlag.matches(MaraUtils.INPUT_TYPE_Pharmacy)) {
       //inputFlagType --> 1
       if (!isMemberActive) {
         //no need to continue if member is not active

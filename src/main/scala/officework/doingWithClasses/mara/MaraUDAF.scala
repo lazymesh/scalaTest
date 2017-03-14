@@ -16,7 +16,7 @@ import scala.collection.mutable
 class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunction {
   var sourceSchema : StructType = _
   var bufferedSchema : StructType = _
-  var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.DoubleType)
+  var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.createArrayType(DataTypes.StringType))
   var mutableBuffer : MutableAggregationBuffer = _
 
   sourceSchema = inputSourceSchema
@@ -25,7 +25,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
   val bufferFields : util.ArrayList[StructField] = new util.ArrayList[StructField]
   val bufferStructField1 : StructField = DataTypes.createStructField("memberInfo", DataTypes.createArrayType(DataTypes.StringType), true)
   bufferFields.add(bufferStructField1)
-  val bufferStructField4 : StructField = DataTypes.createStructField("outputMap",DataTypes.createMapType(DataTypes.StringType, DataTypes.DoubleType), true);
+  val bufferStructField4 : StructField = DataTypes.createStructField("outputMap",DataTypes.createMapType(DataTypes.StringType,DataTypes.createArrayType(DataTypes.StringType)), true)
   bufferFields.add(bufferStructField4)
   bufferedSchema = DataTypes.createStructType(bufferFields)
   var maraBuffer : MaraBuffer = _
@@ -75,7 +75,6 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
   def merge(buffer : MutableAggregationBuffer, input : Row) : Unit = {
     val mergedList = (buffer.getList(0).toArray()) ++ (input.getList(0)).toArray()
     buffer.update(0, mergedList)
-    println(buffer.getList(0)+"(((((((((((((((((((((((((((((((((((((( "+input.getList(0))
   }
 
   /**
@@ -83,7 +82,6 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     */
   @Override
   def evaluate(buffer : Row) : Any = {
-    println("LLLLLLLLLL "+buffer.getList(0))
-    HashMap("prospectiveInpatient" -> 2.0, "prospectivePharmacy"->0.9)
+    HashMap("prospectiveInpatient" -> buffer.getList(0))
   }
 }

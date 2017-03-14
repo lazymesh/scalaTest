@@ -15,11 +15,12 @@ import org.apache.spark.sql.functions.{col, lit, row_number, udf}
 /**
   * Created by ramaharjan on 3/2/17.
   */
-class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame) {
+class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame, endCycleDate : String) {
 
   var eligDF = eligDataFrame
   var medDF = medDataFrame
   var rxDF = rxDataFrame
+  MaraUtils.endOfCycleDate = endCycleDate
 
 
   def setSortDate = udf((date: String) => date )
@@ -58,7 +59,7 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
 
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
     val maraUdaf = new MaraUDAF(combined.schema)
-    combined = combined.groupBy("dw_member_id").agg(maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveInpatient").as("prospectiveInpatient"), maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectivePharmacy").as("prospectivePharmacy"))
+    combined = combined.groupBy("dw_member_id").agg(maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveInpatient").as("prospectiveInpatient"))
     combined.show(false)
 //    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
 
