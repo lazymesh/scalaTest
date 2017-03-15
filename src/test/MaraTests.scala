@@ -56,7 +56,7 @@ class MaraTests extends FunSuite with BeforeAndAfterEach {
     val medicalTable = generateDataFrame.createDataFrameFromResource(sparkContext, sqlContext, medicalDataFileLocation, medicalSchema, "\\^%~")
     val pharmacyTable = generateDataFrame.createDataFrameFromResource(sparkContext, sqlContext, pharmacyDataFileLocation, pharmacySchema, "\\^%~")
 
-//    sparkContext.addFile(dfsWorkingDir+mara1DatFile)
+    sparkContext.addFile(dfsWorkingDir+mara1DatFile)
     sparkContext.addFile(dfsWorkingDir+mara2DatFile)
     sparkContext.addFile(dfsWorkingDir+maraLicenseFile)
 

@@ -2,6 +2,8 @@ package officework.doingWithClasses.mara
 
 import java.util
 
+import main.scala.officework.doingWithObjects.DateUtils
+import milliman.mara.model._
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.UserDefinedAggregateFunction
 import org.apache.spark.sql.types.{DataType, DataTypes, StructField, StructType}
@@ -14,6 +16,7 @@ import scala.collection.mutable
   * Created by ramaharjan on 3/9/17.
   */
 class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunction {
+  MaraUtils.modelProcessor = MaraUtils.prepareModelProcessor(DateUtils.convertStringToLong(MaraUtils.endOfCycleDate))
   var sourceSchema : StructType = _
   var bufferedSchema : StructType = _
   var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.BooleanType)
@@ -27,7 +30,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
   bufferFields.add(bufferStructField0)
   val bufferStructField1 : StructField = DataTypes.createStructField("isMemberActive", DataTypes.BooleanType, true)
   bufferFields.add(bufferStructField1)
-  val bufferStructField2 : StructField = DataTypes.createStructField("eligibleDates", DataTypes.createMapType(DataTypes.LongType, DataTypes.LongType), true)
+  val bufferStructField2 : StructField = DataTypes.createStructField("eligibleDates", DataTypes.createMapType(DataTypes.LongType, DataTypes.LongType, true), true)
   bufferFields.add(bufferStructField2)
   val bufferStructField3 : StructField = DataTypes.createStructField("rxClaimsArrayList", DataTypes.createArrayType(DataTypes.StringType, true), true)
   bufferFields.add(bufferStructField3)
@@ -94,7 +97,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
   override def evaluate(buffer : Row) : Any = {
     println(buffer.getList(3)+" eeeeeeeee "+buffer.getMap(2)+" "+buffer.getBoolean(1)+" "+buffer.getList(4))
     if(buffer.getBoolean(1)) {
-      maraBuffer.calculateMaraScores(buffer.getMap(2), buffer.getList(0), buffer.getList(4), buffer.getList(3))
+      maraBuffer.calculateMaraScores(buffer, MaraUtils.modelProcessor)
       HashMap("prospectiveInpatient" -> buffer.getBoolean(1))
     }
     else

@@ -4,11 +4,11 @@ import java.util
 import java.util.Date
 
 import main.scala.officework.doingWithObjects.DateUtils
-import milliman.mara.model.InputRxClaim
+import milliman.mara.exception.{MARAEngineProcessException, MARAInvalidMemberException}
+import milliman.mara.model._
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.MutableAggregationBuffer
-import org.apache.spark.sql.types.StructField
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, Months, Years}
 
 /**
   * Created by ramaharjan on 3/13/17.
@@ -17,6 +17,15 @@ class MaraBuffer {
 
   var currentCycleEndDate = DateUtils.convertStringToLong(MaraUtils.endOfCycleDate)
   var dataPeriodStartDate = new DateTime(currentCycleEndDate).minusMonths(12).getMillis
+
+  val dataPeriodMonthYears = new util.ArrayList[String](12)
+  val eocDateTime = new DateTime(currentCycleEndDate)
+  dataPeriodMonthYears.clear()
+  for(i <- 1 to 12){
+    val newDate = eocDateTime.minusMonths(i)
+    dataPeriodMonthYears.add(newDate.getMonthOfYear + "-" + newDate.getYear)
+  }
+
   val eligibleDateRanges = new util.TreeMap[Long, Long]
   val inputRxClaimList = new util.ArrayList[String]
   val inputMedClaimList = new util.ArrayList[String]
@@ -26,6 +35,8 @@ class MaraBuffer {
     val memberFields: util.ArrayList[String] = new util.ArrayList[String]
     if (inputTypeFlag == (MaraUtils.inputTypeFlagEligLatest(0))) {
       //setting demographics from the latest eligibility record.
+      val memberId = input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id"))
+      memberFields.add(memberId)
       val mbrDob = input.getString(MaraUtils.finalOrderingColumns.indexOf("mbr_dob"))
       memberFields.add(mbrDob)
       val relationshipCode = input.getString(MaraUtils.finalOrderingColumns.indexOf("mbr_relationship_code"))
@@ -139,12 +150,40 @@ class MaraBuffer {
     }
   }
 
-  def calculateMaraScores
-  (eligibleMap : collection.Map[Nothing, Nothing],
-   memberInfoList : util.List[Nothing],
-   medicalArrayList : util.List[Nothing],
-   rxArrayList : util.List[Nothing]) {
-    MaraUtils.getMaraMedClaimObject(medicalArrayList)
+  def calculateMaraScores(buffer : Row, modelProcessor: ModelProcessor) {
+    val member = new InputMember
+    val memberInfo = buffer.getList(0)
+    member.setMemberId(memberInfo.get(0))
+    member.setDob(new Date(DateUtils.convertStringToLong(memberInfo.get(1))))
+    member.setDependentStatus(MaraUtils.getDependentStatus(memberInfo.get(2)))
+    member.setGender(MaraUtils.getGender(memberInfo.get(4)))
+    member.setExposureMonths(calculateExposureMonths(buffer.getMap(2).asInstanceOf[Map[Long, Long]]))
+    member.setInputMedClaim(MaraUtils.getMaraMedClaimObject(buffer.getList(4).toArray()))
+    member.setInputRxClaim(MaraUtils.getMaraRxClaimObject(buffer.getList(3).toArray()))
+    val maraOutputScores = calculateRiskScores(member, modelProcessor)
+
+    val modelDataMap = maraOutputScores.getOutputModelDataMap
+    val prospectiveModelScore = modelDataMap.get("CXPROLAG0").getOutputModelScore
+    val concurrentModelScore = modelDataMap.get("CXCONLAG0").getOutputModelScore
+    val conditionMap = modelDataMap.get("CXPROLAG0").getOutputPercentContribution
+    println("GGGGGGGGGGGGGGGGGGGGGGGG ")
+    println(prospectiveModelScore.getHipScore)
+    println(prospectiveModelScore.getHopScore)
+    println(prospectiveModelScore.getMedScore)
+    println(prospectiveModelScore.getRxScore)
+    println(prospectiveModelScore.getPhyScore)
+    println(prospectiveModelScore.getTotScore)
+    println(prospectiveModelScore.getErScore)
+    println(prospectiveModelScore.getOthScore)
+    println(concurrentModelScore.getHipScore)
+    println(concurrentModelScore.getHopScore)
+    println(concurrentModelScore.getMedScore)
+    println(concurrentModelScore.getRxScore)
+    println(concurrentModelScore.getPhyScore)
+    println(concurrentModelScore.getTotScore)
+    println(concurrentModelScore.getErScore)
+    println(concurrentModelScore.getOthScore)
+
   }
 
   private def addEligibleDateRanges(eligibleDateRanges: util.TreeMap[Long, Long], effectiveDate: Long, terminationDate: Long) {
@@ -162,4 +201,76 @@ class MaraBuffer {
     }
   }
 
+  private def calculateExposureMonths(eligibleDateRanges: collection.Map[Long, Long]) = {
+    val eligibleMonths = new util.HashSet[String]
+    var exposureMonths = 0
+    for(entry <- eligibleDateRanges){
+      val fromDate = entry._1
+      val toDate = entry._2
+      var endDate = new DateTime(toDate)
+      val months = Months.monthsBetween(new DateTime(fromDate), new DateTime(toDate)).getMonths
+      for(i <- 1 to months) {
+        eligibleMonths.add(endDate.getMonthOfYear + "-" + endDate.getYear)
+        endDate = endDate.minusMonths(1)
+      }
+    }
+    import scala.collection.JavaConverters._
+    for(eligibleMonthYear <- eligibleMonths.asScala) {
+      if (dataPeriodMonthYears.contains(eligibleMonthYear)) exposureMonths += 1
+    }
+    exposureMonths
+  }
+
+  private def calculateRiskScores(inputMember: InputMember, modelProcessor: ModelProcessor) = {
+    var outputMaraResultSet : OutputMaraResultSet = new OutputMaraResultSet
+    try {
+      outputMaraResultSet = modelProcessor.processMember(inputMember)
+    }
+    catch {
+      case e: MARAInvalidMemberException => {
+        outputMaraResultSet = tryRecalculatingRiskScoreForInvalidMembers(inputMember, modelProcessor)
+        if (outputMaraResultSet == null) {
+          println("Warning mara scores not calculate for member " + inputMember.getMemberId)
+          //throw new RuntimeException("Invalid Member : Dob " + inputMember.getDob());
+          MaraUtils.debugMember(inputMember)
+        }
+        else outputMaraResultSet
+      }
+      case e: MARAEngineProcessException => {
+        System.out.println("MaraEngineProcessException" + inputMember.getMemberId + " :: " + e.getMessage)
+        //            saveLogs.setLogsAsString("MARAEngineProcessException "+inputMember.getMemberId(), e);
+        throw new RuntimeException
+      }
+      case ne: NullPointerException => {
+        System.out.println("Invalid users : " + inputMember.getMemberId)
+        //            saveLogs.setLogsAsString("NullPointerException "+inputMember.getMemberId(), ne);
+        System.out.println(ne.getLocalizedMessage)
+        ne.printStackTrace(System.out)
+      }
+    }
+    outputMaraResultSet
+  }
+
+  def tryRecalculatingRiskScoreForInvalidMembers(inputMember: InputMember, modelProcessor: ModelProcessor) = {
+    val age = Years.yearsBetween(new DateTime(inputMember.getDob.getTime), new DateTime(MaraUtils.endOfCycleDate)).getYears
+    System.out.println("Invalid Age " + age + " CycleEndDate " + new Date(MaraUtils.endOfCycleDate) + " Member Id " + inputMember.getMemberId)
+    val cycleEndDate = new DateTime(MaraUtils.endOfCycleDate)
+    val newDob = cycleEndDate.minusYears(35).getMillis
+    inputMember.setDob(new Date(newDob))
+    var outputMaraResultSet : OutputMaraResultSet = new OutputMaraResultSet
+    try
+      outputMaraResultSet = modelProcessor.processMember(inputMember)
+
+    catch {
+      case e: MARAInvalidMemberException => {
+        System.out.println(e.getMessage)
+        null
+      }
+      case e: MARAEngineProcessException => {
+        System.out.println(e.getMessage)
+        null
+      }
+    }
+    outputMaraResultSet
+  }
 }
