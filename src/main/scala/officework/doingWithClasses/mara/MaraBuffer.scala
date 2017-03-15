@@ -19,11 +19,11 @@ class MaraBuffer {
   var dataPeriodStartDate = new DateTime(currentCycleEndDate).minusMonths(12).getMillis
   val eligibleDateRanges = new util.TreeMap[Long, Long]
   val inputRxClaimList = new util.ArrayList[String]
+  val inputMedClaimList = new util.ArrayList[String]
 
-  def populate(buffer : MutableAggregationBuffer, input : Row): Unit ={
+  def populate(buffer : MutableAggregationBuffer, input : Row): Unit = {
     val inputTypeFlag = input.getInt(MaraUtils.finalOrderingColumns.indexOf("inputTypeFlag"))
-    println(input.getString(0)+" OOOOOOOOOOOOOOOOOOOOOOOO "+inputTypeFlag)
-    val memberFields : util.ArrayList[String] = new util.ArrayList[String]
+    val memberFields: util.ArrayList[String] = new util.ArrayList[String]
     if (inputTypeFlag == (MaraUtils.inputTypeFlagEligLatest(0))) {
       //setting demographics from the latest eligibility record.
       val mbrDob = input.getString(MaraUtils.finalOrderingColumns.indexOf("mbr_dob"))
@@ -74,10 +74,9 @@ class MaraBuffer {
       memberFields.add(ins_plan_type_code)
       val integer_member_id = input.getString(MaraUtils.finalOrderingColumns.indexOf("integer_member_id"))
       memberFields.add(integer_member_id)
-      buffer.update(3, input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")))
 
       //if the client contains groupwise processing then end cycle dates varies according to groups
-/*      if (this.groupWiseProcessing.equalsIgnoreCase("groupWiseProcess")) {
+      /*      if (this.groupWiseProcessing.equalsIgnoreCase("groupWiseProcess")) {
         grouped_End_Cycle_Dates = entry.getString("cycleEndDate")
         setGroupWiseProcessing(entry)
       }
@@ -89,7 +88,7 @@ class MaraBuffer {
       var effDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
       var termDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_term_date")))
 
-/*      if (eligibleDate.equalsIgnoreCase("increase")) {
+      /*      if (eligibleDate.equalsIgnoreCase("increase")) {
         effDate = DateUtils.getIncreaseEligibleFromDate(effDate).getMillis
         termDate = DateUtils.getMaxEligibleToDate(termDate).getMillis
       }
@@ -102,53 +101,50 @@ class MaraBuffer {
       }
       //adding eligible date ranges
       //todo summable maps
-/*      paidAmount.put(entry.getString("ins_emp_group_id"), 0D)
+      /*      paidAmount.put(entry.getString("ins_emp_group_id"), 0D)
       allowedAmount.put(entry.getString("ins_emp_group_id"), 0D)*/
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagRx(0))) {
       //inputFlagType --> 1
       val serviceDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date")))
-/*      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
+      /*      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
       else entry.getDouble("rev_paid_amt")
       val allowed_amount = if (StringUtils.isNull(entry.getString("rev_allowed_amt"))) 0D
       else entry.getDouble("rev_allowed_amt")*/
-      println(input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")) +" "+input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date"))+" UUUUUUUUUUUUUUUUUUUUUUUUUUUUU "+MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate))
+      //      println(input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")) +" "+input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date"))+" UUUUUUUUUUUUUUUUUUUUUUUUUUUUU "+MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate))
       if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate)) {
-//        totalRxPaid += paid_amount
-//        totalRxAllowedAmt += allowed_amount
+        //        totalRxPaid += paid_amount
+        //        totalRxAllowedAmt += allowed_amount
         //        paidAmount.put(entry.getString("ins_emp_group_id"), paid_amount)
         //        allowedAmount.put(entry.getString("ins_emp_group_id"), allowed_amount)
-        println("KKKKKKKKKKKKKKKK "+MaraUtils.getInputRxClaim(input))
-//        buffer.update(4, inputRxClaimList.add(MaraUtils.getInputRxClaim(input)))
+        inputRxClaimList.add(MaraUtils.getInputRxClaim(input))
+        buffer.update(3, inputRxClaimList)
       }
     }
-/*    else if (inputTypeFlag.matches(MaraUtils.INPUT_TYPE_Medical)) {
+    else if (inputTypeFlag == (MaraUtils.inputTypeFlagMed(0))) {
       //inputFlagType --> 0
-      if (!isMemberActive) {
-        //no need to continue if member is not active
-        System.out.println("Member " + entry.getString("dw_member_id") + " is inactive with no pharmacy claims")
-        break //todo: break is not supported
-      }
-      val serviceDate = entry.getObject("svc_service_frm_date").asInstanceOf[Long]
-      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
+      val serviceDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date")))
+      /*      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
       else entry.getDouble("rev_paid_amt")
       val allowed_amount = if (StringUtils.isNull(entry.getString("rev_allowed_amt"))) 0D
-      else entry.getDouble("rev_allowed_amt")
-      if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, dataPeriodEndDate)) try
-        totalMedPaid += paid_amount
+      else entry.getDouble("rev_allowed_amt")*/
+      if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate)) {
+        /*        totalMedPaid += paid_amount
         totalMedAllowedAmt += allowed_amount
-        inputMedClaimList.add(MaraUtils.getInputMedClaim(entry))
         paidAmount.put(entry.getString("ins_emp_group_id"), paid_amount)
-        allowedAmount.put(entry.getString("ins_emp_group_id"), allowed_amount)
-
-      catch {
-        case e: IOException => {
-          System.out.println("IO Exception has occurred ??????")
-          e.printStackTrace()
-          throw new RuntimeException("IO exception for member " + entry.getString("dw_member_id"))
-        }
+        allowedAmount.put(entry.getString("ins_emp_group_id"), allowed_amount)*/
+        inputMedClaimList.add(MaraUtils.getInputMedClaim(input))
+        buffer.update(4, inputMedClaimList)
       }
-    }*/
+    }
+  }
+
+  def calculateMaraScores
+  (eligibleMap : collection.Map[Nothing, Nothing],
+   memberInfoList : util.List[Nothing],
+   medicalArrayList : util.List[Nothing],
+   rxArrayList : util.List[Nothing]) {
+    MaraUtils.getMaraMedClaimObject(medicalArrayList)
   }
 
   private def addEligibleDateRanges(eligibleDateRanges: util.TreeMap[Long, Long], effectiveDate: Long, terminationDate: Long) {
