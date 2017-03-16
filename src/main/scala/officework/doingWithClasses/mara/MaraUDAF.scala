@@ -19,7 +19,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
   MaraUtils.modelProcessor = MaraUtils.prepareModelProcessor(DateUtils.convertStringToLong(MaraUtils.endOfCycleDate))
   var sourceSchema : StructType = _
   var bufferedSchema : StructType = _
-  var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.BooleanType)
+  var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType)
   var mutableBuffer : MutableAggregationBuffer = _
 
   sourceSchema = inputSourceSchema
@@ -36,8 +36,10 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
   bufferFields.add(bufferStructField3)
   val bufferStructField4 : StructField = DataTypes.createStructField("medClaimsArrayList", DataTypes.createArrayType(DataTypes.StringType, true), true)
   bufferFields.add(bufferStructField4)
-//  val bufferStructField5 : StructField = DataTypes.createStructField("outputMap",DataTypes.createMapType(DataTypes.StringType,DataTypes.BooleanType), true)
-//  bufferFields.add(bufferStructField5)
+  val bufferStructField5 : StructField = DataTypes.createStructField("groupWisePaidAmount", DataTypes.createMapType(DataTypes.StringType, DataTypes.DoubleType, true), true)
+  bufferFields.add(bufferStructField5)
+  val bufferStructField6 : StructField = DataTypes.createStructField("groupWisePaidAllowedAmount", DataTypes.createMapType(DataTypes.StringType, DataTypes.DoubleType, true), true)
+  bufferFields.add(bufferStructField6)
   bufferedSchema = DataTypes.createStructType(bufferFields)
   var maraBuffer : MaraBuffer = _
 
@@ -69,6 +71,8 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     buffer(2) = new mutable.HashMap[Long, Long]
     buffer(3) = new util.ArrayList[String]
     buffer(4) = new util.ArrayList[String]
+    buffer(5) = new mutable.HashMap[String, Double]
+    buffer(6) = new mutable.HashMap[String, Double]
   }
 
   /**
@@ -89,18 +93,18 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     buffer.update(2, buffer.getMap(2) ++ input.getMap(2)) //map for exposure months
     buffer.update(3, buffer.getList(3).toArray() ++ input.getList(3).toArray()) //pharmacy claim list to be passed to mara
     buffer.update(4, buffer.getList(4).toArray() ++ input.getList(4).toArray()) //medical claim list to be passed to mara
+    buffer.update(5, buffer.getMap(5) ++ input.getMap(5)) //map for groupwise paid amount
+    buffer.update(6, buffer.getMap(6) ++ input.getMap(6)) //map for groupwise allowed amount
   }
 
   /**
     * This method calculates the final value by referring the aggregation buffer
     */
   override def evaluate(buffer : Row) : Any = {
-    println(buffer.getList(3)+" eeeeeeeee "+buffer.getMap(2)+" "+buffer.getBoolean(1)+" "+buffer.getList(4))
     if(buffer.getBoolean(1)) {
       maraBuffer.calculateMaraScores(buffer, MaraUtils.modelProcessor)
-      HashMap("prospectiveInpatient" -> buffer.getBoolean(1))
     }
     else
-      HashMap("prospectiveInpatient" -> false)
+      mutable.HashMap("emptyscore" -> "")
   }
 }

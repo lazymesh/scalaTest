@@ -6,14 +6,19 @@ import java.util.Date
 import main.scala.officework.doingWithObjects.DateUtils
 import milliman.mara.exception.{MARAEngineProcessException, MARAInvalidMemberException}
 import milliman.mara.model._
+import officework.doingWithClasses.{StringUtility, SummableMap}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.MutableAggregationBuffer
 import org.joda.time.{DateTime, Months, Years}
+
+import scala.collection.mutable
 
 /**
   * Created by ramaharjan on 3/13/17.
   */
 class MaraBuffer {
+
+  val conditionMapFromFile = MaraUtils.getConditionMap
 
   var currentCycleEndDate = DateUtils.convertStringToLong(MaraUtils.endOfCycleDate)
   var dataPeriodStartDate = new DateTime(currentCycleEndDate).minusMonths(12).getMillis
@@ -29,6 +34,9 @@ class MaraBuffer {
   val eligibleDateRanges = new util.TreeMap[Long, Long]
   val inputRxClaimList = new util.ArrayList[String]
   val inputMedClaimList = new util.ArrayList[String]
+
+  val paidAmount : SummableMap[String, Double] = new SummableMap[String, Double]
+  val allowedAmount : SummableMap[String, Double] = new SummableMap[String, Double]
 
   def populate(buffer : MutableAggregationBuffer, input : Row): Unit = {
     val inputTypeFlag = input.getInt(MaraUtils.finalOrderingColumns.indexOf("inputTypeFlag"))
@@ -110,54 +118,53 @@ class MaraBuffer {
         addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
         buffer.update(2, eligibleDateRanges)
       }
-      //adding eligible date ranges
-      //todo summable maps
-      /*      paidAmount.put(entry.getString("ins_emp_group_id"), 0D)
-      allowedAmount.put(entry.getString("ins_emp_group_id"), 0D)*/
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagRx(0))) {
       //inputFlagType --> 1
       val serviceDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date")))
-      /*      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
-      else entry.getDouble("rev_paid_amt")
-      val allowed_amount = if (StringUtils.isNull(entry.getString("rev_allowed_amt"))) 0D
-      else entry.getDouble("rev_allowed_amt")*/
-      //      println(input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")) +" "+input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date"))+" UUUUUUUUUUUUUUUUUUUUUUUUUUUUU "+MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate))
+      val paid_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")))) 0D
+        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")).toDouble
+      val allowed_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")))) 0D
+        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
+
       if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate)) {
-        //        totalRxPaid += paid_amount
-        //        totalRxAllowedAmt += allowed_amount
-        //        paidAmount.put(entry.getString("ins_emp_group_id"), paid_amount)
-        //        allowedAmount.put(entry.getString("ins_emp_group_id"), allowed_amount)
         inputRxClaimList.add(MaraUtils.getInputRxClaim(input))
+        paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), paid_amount)
+        allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), allowed_amount)
         buffer.update(3, inputRxClaimList)
+        buffer.update(5, paidAmount)
+        buffer.update(6, allowedAmount)
       }
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagMed(0))) {
       //inputFlagType --> 0
       val serviceDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date")))
-      /*      val paid_amount = if (StringUtils.isNull(entry.getString("rev_paid_amt"))) 0D
-      else entry.getDouble("rev_paid_amt")
-      val allowed_amount = if (StringUtils.isNull(entry.getString("rev_allowed_amt"))) 0D
-      else entry.getDouble("rev_allowed_amt")*/
+      val paid_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")))) 0D
+        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")).toDouble
+      val allowed_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")))) 0D
+        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
+
       if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate)) {
-        /*        totalMedPaid += paid_amount
-        totalMedAllowedAmt += allowed_amount
-        paidAmount.put(entry.getString("ins_emp_group_id"), paid_amount)
-        allowedAmount.put(entry.getString("ins_emp_group_id"), allowed_amount)*/
         inputMedClaimList.add(MaraUtils.getInputMedClaim(input))
+        paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), paid_amount)
+        allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), allowed_amount)
         buffer.update(4, inputMedClaimList)
+        buffer.update(5, paidAmount)
+        buffer.update(6, allowedAmount)
       }
     }
   }
 
-  def calculateMaraScores(buffer : Row, modelProcessor: ModelProcessor) {
+  def calculateMaraScores(buffer : Row, modelProcessor: ModelProcessor): mutable.HashMap[String, String] = {
+//    val scoreHashMap : mutable.HashMap[String, String] = mutable.HashMap.empty[String, String]
     val member = new InputMember
     val memberInfo = buffer.getList(0)
+    val exposureMonths = calculateExposureMonths(buffer.getMap(2).asInstanceOf[Map[Long, Long]])
     member.setMemberId(memberInfo.get(0))
     member.setDob(new Date(DateUtils.convertStringToLong(memberInfo.get(1))))
     member.setDependentStatus(MaraUtils.getDependentStatus(memberInfo.get(2)))
     member.setGender(MaraUtils.getGender(memberInfo.get(4)))
-    member.setExposureMonths(calculateExposureMonths(buffer.getMap(2).asInstanceOf[Map[Long, Long]]))
+    member.setExposureMonths(exposureMonths)
     member.setInputMedClaim(MaraUtils.getMaraMedClaimObject(buffer.getList(4).toArray()))
     member.setInputRxClaim(MaraUtils.getMaraRxClaimObject(buffer.getList(3).toArray()))
     val maraOutputScores = calculateRiskScores(member, modelProcessor)
@@ -165,25 +172,62 @@ class MaraBuffer {
     val modelDataMap = maraOutputScores.getOutputModelDataMap
     val prospectiveModelScore = modelDataMap.get("CXPROLAG0").getOutputModelScore
     val concurrentModelScore = modelDataMap.get("CXCONLAG0").getOutputModelScore
-    val conditionMap = modelDataMap.get("CXPROLAG0").getOutputPercentContribution
-    println("GGGGGGGGGGGGGGGGGGGGGGGG ")
-    println(prospectiveModelScore.getHipScore)
-    println(prospectiveModelScore.getHopScore)
-    println(prospectiveModelScore.getMedScore)
-    println(prospectiveModelScore.getRxScore)
-    println(prospectiveModelScore.getPhyScore)
-    println(prospectiveModelScore.getTotScore)
-    println(prospectiveModelScore.getErScore)
-    println(prospectiveModelScore.getOthScore)
-    println(concurrentModelScore.getHipScore)
-    println(concurrentModelScore.getHopScore)
-    println(concurrentModelScore.getMedScore)
-    println(concurrentModelScore.getRxScore)
-    println(concurrentModelScore.getPhyScore)
-    println(concurrentModelScore.getTotScore)
-    println(concurrentModelScore.getErScore)
-    println(concurrentModelScore.getOthScore)
 
+    val conditionMap = modelDataMap.get("CXPROLAG0").getOutputPercentContribution
+    var conditionString = ""
+    import scala.collection.JavaConversions._
+    for (conditionCode <- conditionMap.keySet()) {
+      var conditionDescription = conditionMapFromFile.getOrElse(conditionCode, "Unknown Code")
+      conditionString += conditionCode+"^%~"+conditionDescription+"^%~"+conditionMap.get(conditionCode)+"^*~"
+    }
+/*    import scala.collection.JavaConversions._
+    for (groupid <- groupIdSet) {
+      if (riskAA.isEmpty) riskAA = groupid + AdmissionAggregator.INLINE_SEPRATOR + paidAmount.get(groupid) + ";" + allowedAmount.get(groupid)
+      else riskAA = riskAA + AdmissionAggregator.ENTRY_SEPARATOR + groupid + AdmissionAggregator.INLINE_SEPRATOR + paidAmount.get(groupid) + ";" + allowedAmount.get(groupid)
+    }*/
+    mutable.HashMap(
+      "mbr_dob" -> memberInfo.get(1),
+      "mbr_relationship_code" -> memberInfo.get(2),
+      "mbr_relationship_desc" -> memberInfo.get(3),
+      "mbr_gender" -> memberInfo.get(4),
+      "unblindMemberId" -> memberInfo.get(5),
+      "mbr_current_status" -> memberInfo.get(6),
+      "memberFullName" -> memberInfo.get(7),
+      "ins_emp_group_id" -> memberInfo.get(8),
+      "ins_emp_group_name" -> memberInfo.get(9),
+      "ins_division_id" -> memberInfo.get(10),
+      "ins_carrier_id" -> memberInfo.get(11),
+      "ins_plan_id" -> memberInfo.get(12),
+      "udf16" -> memberInfo.get(13),
+      "udf17" -> memberInfo.get(14),
+      "udf18" -> memberInfo.get(15),
+      "udf19" -> memberInfo.get(16),
+      "udf20" -> memberInfo.get(17),
+      "udf21" -> memberInfo.get(18),
+      "udf22" -> memberInfo.get(19),
+      "udf23" -> memberInfo.get(20),
+      "udf24" -> memberInfo.get(21),
+      "udf25" -> memberInfo.get(22),
+      "ins_plan_type_code" -> memberInfo.get(23),
+      "integer_member_id" -> memberInfo.get(24),
+      "exposureMonths" -> exposureMonths.toString,
+      "prospectiveInpatientRaw" -> prospectiveModelScore.getHipScore.toString,
+      "prospectiveOutpatientRaw"  -> prospectiveModelScore.getHopScore.toString,
+      "prospectiveMedicalRaw" -> prospectiveModelScore.getMedScore.toString,
+      "prospectivePharmacyRaw" -> prospectiveModelScore.getRxScore.toString,
+      "prospectivePhysicianRaw" -> prospectiveModelScore.getPhyScore.toString,
+      "prospectiveTotalScoreRaw" -> prospectiveModelScore.getTotScore.toString,
+      "prospectiveERScoreRaw" -> prospectiveModelScore.getErScore.toString,
+      "prospectiveOtherScoreRaw" -> prospectiveModelScore.getOthScore.toString,
+      "concurrentInpatientRaw" -> concurrentModelScore.getHipScore.toString,
+      "concurrentOutpatientRaw" -> concurrentModelScore.getHopScore.toString,
+      "concurrentMedicalRaw" -> concurrentModelScore.getMedScore.toString,
+      "concurrentPharmacyRaw" -> concurrentModelScore.getRxScore.toString,
+      "concurrentPhysicianRaw" -> concurrentModelScore.getPhyScore.toString,
+      "concurrentTotalScoreRaw" -> concurrentModelScore.getTotScore.toString,
+      "concurrentERScoreRaw" -> concurrentModelScore.getErScore.toString,
+      "concurrentOtherScoreRaw" -> concurrentModelScore.getOthScore.toString,
+      "conditionList" -> conditionString)
   }
 
   private def addEligibleDateRanges(eligibleDateRanges: util.TreeMap[Long, Long], effectiveDate: Long, terminationDate: Long) {

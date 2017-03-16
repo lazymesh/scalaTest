@@ -60,7 +60,49 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
 
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
     val maraUdaf = new MaraUDAF(combined.schema)
-    combined = combined.orderBy("inputTypeFlag").groupBy("dw_member_id").agg(maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveInpatient").as("prospectiveInpatient"))
+    combined = combined.orderBy("inputTypeFlag").groupBy("dw_member_id").agg(
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_dob").as("mbr_dob"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_relationship_code").as("mbr_relationship_code"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_relationship_desc").as("mbr_relationship_desc"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_gender").as("mbr_gender"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("unblindMemberId").as("unblindMemberId"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_current_status").as("mbr_current_status"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("memberFullName").as("memberFullName"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_emp_group_id").as("ins_emp_group_id"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_emp_group_name").as("ins_emp_group_name"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_division_id").as("ins_division_id"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_carrier_id").as("ins_carrier_id"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_plan_id").as("ins_plan_id"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf16").as("udf16"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf17").as("udf17"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf18").as("udf18"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf19").as("udf19"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf20").as("udf20"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf21").as("udf21"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf22").as("udf22"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf23").as("udf23"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf24").as("udf24"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf25").as("udf25"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_plan_type_code").as("ins_plan_type_code"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("integer_member_id").as("integer_member_id"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("exposureMonths").as("exposureMonths"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveInpatientRaw").as("prospectiveInpatientRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveOutpatientRaw").as("prospectiveOutpatientRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveMedicalRaw").as("prospectiveMedicalRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectivePharmacyRaw").as("prospectivePharmacyRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectivePhysicianRaw").as("prospectivePhysicianRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveTotalScoreRaw").as("prospectiveTotalScoreRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveERScoreRaw").as("prospectiveERScoreRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveOtherScoreRaw").as("prospectiveOtherScoreRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentInpatientRaw").as("concurrentInpatientRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentOutpatientRaw").as("concurrentOutpatientRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentMedicalRaw").as("concurrentMedicalRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentPharmacyRaw").as("concurrentPharmacyRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentPhysicianRaw").as("concurrentPhysicianRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentTotalScoreRaw").as("concurrentTotalScoreRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentERScoreRaw").as("concurrentERScoreRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentOtherScoreRaw").as("concurrentOtherScoreRaw"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("conditionList").as("conditionList"))
     combined.show(false)
 //    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
 

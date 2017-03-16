@@ -1,6 +1,6 @@
 package officework.doingWithClasses.mara
 
-import java.io.IOException
+import java.io.{BufferedReader, IOException, InputStreamReader}
 import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
@@ -11,6 +11,10 @@ import milliman.mara.model._
 import officework.doingWithClasses.StringUtility
 import org.apache.spark.SparkFiles
 import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.StructField
+
+import scala.collection.mutable
+import scala.io.Source
 
 /**
   * Created by ramaharjan on 3/13/17.
@@ -234,6 +238,12 @@ object MaraUtils {
     modelProperties.setEndBasePeriodDate(df_mmddyyyy.format(endOfCycleDate))
 
     modelProperties
+  }
+
+  val clinical_classifications_file = "/mara/Milliman_Clinical_Classifications_MARA_2_2_4.csv"
+  def getConditionMap() = {
+    val rawData = Source.fromInputStream(getClass.getResourceAsStream(clinical_classifications_file)).getLines().filter(!_.startsWith("#"))
+    rawData.map(x=>x.split(":", -1)).map(value => value(0) -> value(1)).toMap
   }
 
   def debugMember(inputMember: InputMember) {

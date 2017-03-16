@@ -3,6 +3,7 @@ package test
 import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, ProcedureMasterTableUDFs}
 import main.scala.officework.doingWithClasses._
 import main.scala.officework.doingWithClasses.mara.MaraAssembly
+import officework.doingWithClasses.mara.MaraUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.SparkFiles
@@ -65,6 +66,13 @@ class MaraTests extends FunSuite with BeforeAndAfterEach {
 
     sparkContext.stop
 
+  }
+
+  test("condition map test"){
+    val conditions = MaraUtils.getConditionMap()
+    for(tuple <- conditions){
+      println("key : "+tuple._1+", value : "+tuple._2)
+    }
   }
 
 }
