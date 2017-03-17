@@ -1,6 +1,5 @@
 package officework.doingWithClasses.mara
 
-import java.io.{BufferedReader, IOException, InputStreamReader}
 import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
@@ -11,9 +10,7 @@ import milliman.mara.model._
 import officework.doingWithClasses.StringUtility
 import org.apache.spark.SparkFiles
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.StructField
 
-import scala.collection.mutable
 import scala.io.Source
 
 /**

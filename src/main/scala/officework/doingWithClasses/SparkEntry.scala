@@ -1,14 +1,11 @@
 package main.scala.officework.doingWithClasses
 
-import cascading.tuple.{Tuple, Tuples}
-import main.scala.officework.ScalaUtils
-import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, MasterTableGroupers, ProcedureMasterTableUDFs}
-import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
+import main.scala.officework.doingWithClasses.mara.MaraAssembly
+import main.scala.officework.doingWithClasses.masterTableUsingDF.{DiagnosisMasterTableUDFs, ProcedureMasterTableUDFs}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.SparkFiles
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions._
-
-import scala.collection.JavaConverters._
 
 /**
   * Created by ramaharjan on 2/1/17.
@@ -90,7 +87,7 @@ object SparkEntry {
 //    val memberIdRDD = eligibilityTable.select("dw_member_id").distinct().rdd
     val memberId = eligibilityTable.select("dw_member_id").distinct().withColumnRenamed("dw_member_id", "dw_member_id_1")
     memberId.createOrReplaceTempView("simpleTable")
-    val memberIdRDD = sqlContext.sql("select row_number() over (order by dw_member_id_1) as int_member_id,dw_member_id_1 from simpleTable")
+    val memberIdRDD = sqlContext.sql("select row_number() over (order by dw_member_id_1) as integer_member_id,dw_member_id_1 from simpleTable")
 
     val intRDD = memberIdRDD.rdd.map(row => row.toString().replace("[","").replace("]",""))
     //    OutputSavingFormatUtils.sequenceTupleFormats(intRDD, eligJobConfig.getIntMemberId, ",")
@@ -130,6 +127,14 @@ object SparkEntry {
     //    OutputSavingFormatUtils.sequenceTupleFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath, ",")
     OutputSavingFormatUtils.textCSVFormats(pharmacyRDD, pharmacyJobConfig.getSinkFilePath)
     //    OutputSavingFormatUtils.dataFrameToCSVFormat(pharmacyTable, pharmacyJobConfig.getSinkFilePath)
+
+    eligibilityTable = eligibilityTable.join(memberIdRDD, eligibilityTable("dw_member_id") === memberIdRDD("dw_member_id_1"), "left")
+    eligibilityTable.drop(medicalDF.col("dw_member_id_1"))
+
+
+    val maraAssembly = new MaraAssembly(eligibilityTable, medicalGoldenRulesApplied, pharmacyTable, clientConfig.getEOC, sc)
+    val maraDataFrame = maraAssembly.maraCalculator
+    maraDataFrame.show(1000, false)
 
     //stopping sparkContext
     sc.stop()

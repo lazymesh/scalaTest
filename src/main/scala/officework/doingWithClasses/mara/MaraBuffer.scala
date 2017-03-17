@@ -91,7 +91,7 @@ class MaraBuffer {
       memberFields.add(udf25)
       val ins_plan_type_code = input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_plan_type_code"))
       memberFields.add(ins_plan_type_code)
-      val integer_member_id = input.getString(MaraUtils.finalOrderingColumns.indexOf("integer_member_id"))
+      val integer_member_id = input.getInt(MaraUtils.finalOrderingColumns.indexOf("integer_member_id")).toString
       memberFields.add(integer_member_id)
 
       //if the client contains groupwise processing then end cycle dates varies according to groups
@@ -187,14 +187,14 @@ class MaraBuffer {
     val groupwiseAllowedAmounts = buffer.getMap(6).asInstanceOf[Map[String, Double]]
     for (groupWiseEntry <- groupwisePaidAmounts) {
       if (riskAA.isEmpty){
-        riskAA = groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+        riskAA = groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts(groupWiseEntry._1)
         totalPaidAmount += groupWiseEntry._2
-        totalAllowedAmount += groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+        totalAllowedAmount += groupwiseAllowedAmounts(groupWiseEntry._1)
       }
       else{
-        riskAA = riskAA + "^*~" + groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+        riskAA = riskAA + "^*~" + groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts(groupWiseEntry._1)
         totalPaidAmount += groupWiseEntry._2
-        totalAllowedAmount += groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+        totalAllowedAmount += groupwiseAllowedAmounts(groupWiseEntry._1)
       }
     }
     mutable.HashMap(
@@ -297,12 +297,10 @@ class MaraBuffer {
       }
       case e: MARAEngineProcessException => {
         System.out.println("MaraEngineProcessException" + inputMember.getMemberId + " :: " + e.getMessage)
-        //            saveLogs.setLogsAsString("MARAEngineProcessException "+inputMember.getMemberId(), e);
         throw new RuntimeException
       }
       case ne: NullPointerException => {
         System.out.println("Invalid users : " + inputMember.getMemberId)
-        //            saveLogs.setLogsAsString("NullPointerException "+inputMember.getMemberId(), ne);
         System.out.println(ne.getLocalizedMessage)
         ne.printStackTrace(System.out)
       }

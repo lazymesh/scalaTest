@@ -1,0 +1,1239 @@
+#C_CODE:CLINICAL LABEL
+C_0001:Abnormal Uterine Bleeding (Dysfunctional Uterine Bleeding)
+C_0002:Failed attempted abortion
+C_0003:Abortion, Induced
+C_0004:Spontaneous abortion
+C_0005:Abscess - Brain or Spine
+C_0006:Abscess - Breast
+C_0007:Abscess - Ischiorectal or perirectal abscess/fistula
+C_0008:Abscess - Liver
+C_0009:Abscess - Lung
+C_0010:Abscess - Peritonsillar
+C_0011:Abscess - Pilonidal
+C_0012:Abscess - Renal
+C_0013:Acetonuria (Ketonuria)
+C_0014:Achlorhydria
+C_0015:Acidosis
+C_0016:Acne
+C_0017:Acne Rosacea
+C_0019:Acromegaly
+C_0020:Actinomycosis
+C_0021:Addison's Disease
+C_0023:Adenoiditis
+C_0024:Adenoma
+C_0025:Adhesion
+C_0026:Agoraphobia
+C_0027:Agranulocytosis
+C_0028:Albuminuria
+C_0029:Alcoholism
+C_0030:Aldosteronoma
+C_0031:Alkalosis
+C_0032:Allergy/Allergic Rhinitis
+C_0033:Alopecia
+C_0034:Alzheimer's Disease
+C_0035:Amblyopia
+C_0037:Amenorrhea
+C_0038:Amnesia
+C_0039:Amputations
+C_0040:Amyloidosis
+C_0041:Amyotrophic Lateral Sclerosis
+C_0043:Anaphylaxis Allergy
+C_0044:Anemia
+C_0045:Aneurysm
+C_0046:Angioneurotic Edema
+C_0047:Anhidrosis
+C_0048:Ankylosis
+C_0049:Anorexia Nervosa
+C_0050:Antepartum Hemorrhage
+C_0051:Anthrax
+C_0052:Anuria
+C_0054:Aphasia
+C_0056:Appendicitis
+C_0057:Arteriosclerosis
+C_0058:Arteriovenous Malformation
+C_0059:Arthralgia
+C_0060:Arthropathy Due To Crystal Deposition
+C_0061:Asbestosis
+C_0062:Ascites
+C_0063:Aseptic Necrosis of Bone
+C_0064:Aspergillosis
+C_0065:Asphyxia
+C_0066:Asthma
+C_0067:Ataxia
+C_0068:Atelectasis
+C_0069:Atrial Fibrillation or Flutter
+C_0070:Atrophy - Breast
+C_0072:Atrophy - Retina, Choroid, or Iris
+C_0073:Atrophy - Testicle
+C_0074:Atrophy - Vulva
+C_0075:Attention Deficit-Hyperactivity Disorder (ADHD)
+C_0076:Autism
+C_0077:Autosomal deletion syndromes (Velo-Cardio-Facial and Cri du Chat Syndromes)
+C_0078:Bacillary Dysentery (Shigellosis)
+C_0079:Back Sprain or Strain
+C_0080:Bacterial Infection
+C_0082:Balanitis
+C_0085:Behcet's Syndrome
+C_0086:Bell's Palsy
+C_0087:Bile duct obstruction
+C_0088:Birth Abnormalities
+C_0089:Birth Asphyxia
+C_0090:Birth Injuries
+C_0091:Bladder Stones
+C_0092:Blastomycosis
+C_0093:Blepharitis
+C_0094:Blepharoptosis, Blepharochalasis
+C_0095:Blind loop syndrome
+C_0096:Blindness / Low Vision
+C_0097:Blood Dyscrasia
+C_0099:Bone Marrow Transplant
+C_0100:Bone Transplant
+C_0101:Bow leg
+C_0102:Bradycardia
+C_0103:Brain Concussion
+C_0104:Brain Injury with Intracranial Bleed Other Than Subdural
+C_0105:Brain Injury without mention of Intracranial Bleed
+C_0107:Breast Microcalcification
+C_0108:Broad Ligament Laceration Syndrome
+C_0109:Bronchiectasis
+C_0110:Bronchitis and Bronchiolitis
+C_0111:Brucellosis
+C_0112:Bruits
+C_0113:Bulimia
+C_0114:Bundle Branch Block
+C_0115:Bunion (Hallux Valgus)
+C_0116:Burns
+C_0117:Bursitis
+C_0118:Cancer - Adrenal Gland
+C_0119:Cancer - Bone
+C_0120:Cancer - Brain and Nervous System
+C_0121:Cancer - Breast
+C_0123:Cancer - Cervix/Uterus
+C_0124:Cancer - Colon/Rectum
+C_0125:Cancer - Connective or Soft tissue
+C_0126:Cancer - Corpus Uterus (Endometrial Carcinoma)
+C_0127:Cancer - Esophagus
+C_0128:Cancer - Eye
+C_0129:Cancer - Gall Bladder
+C_0130:Cancer - Hodgkin's Lymphoma
+C_0131:Cancer - Kidney, Renal Cell Carcinoma
+C_0132:Cancer - Kidney, Renal Pelvis and Ureter
+C_0133:Cancer - Larynx
+C_0134:Cancer - Liver
+C_0135:Cancer - Lung, Bronchi, Pleura
+C_0136:Cancer - Lymphoid, Monocytic, Other Leukemia
+C_0137:Cancer - Metastatic
+C_0138:Cancer - Multiple Myeloma
+C_0139:Cancer - Myeloid Leukemia
+C_0140:Cancer - Nasal/Sinus
+C_0141:Cancer - Non Hodgkin's Lymphoma
+C_0142:Cancer - Oral Cavity, Pharynx
+C_0143:Cancer - Ovary
+C_0144:Cancer - Pancreas
+C_0145:Cancer - Penis, Scrotum
+C_0146:Cancer - Peritoneum
+C_0147:Cancer - Pituitary Gland
+C_0148:Cancer - Prostate Gland
+C_0149:Cancer - Sarcoma
+C_0150:Cancer - Skin Melanoma
+C_0151:Cancer - Stomach / Small Intestine
+C_0152:Cancer - Testicular
+C_0153:Cancer - Thoracic, Mediastinum
+C_0154:Cancer - Thyroid
+C_0155:Cancer - Urinary Bladder
+C_0156:Cancer - Vagina, Labia, Clitoris
+C_0157:Carbuncle
+C_0159:Cardiac Arrhythmia
+C_0160:Cardiomyopathy
+C_0161:Carotid Artery Disease
+C_0162:Carotid Sinus Syndrome
+C_0163:Carpal Tunnel Syndrome
+C_0164:Caruncle
+C_0165:Cat Scratch Fever
+C_0166:Cataracts
+C_0167:Cauliflower Ear
+C_0168:Cavernous Sinus Thrombosis
+C_0169:Celiac Disease (non-Tropical Sprue)
+C_0170:Cellulitis
+C_0172:Cerebral Palsy - Infantile
+C_0173:Cervical Dysplasia
+C_0175:Cervicitis (Cervical Erosion or Ulcer)
+C_0176:Cesarean Section
+C_0177:Chancroid
+C_0178:Charcot's Joint
+C_0179:Chest Pain
+C_0181:Cholelithiasis
+C_0182:Cholesteatoma of the Ear
+C_0183:Chondritis
+C_0184:Chondromalacia of Patella
+C_0185:Chorea
+C_0186:Choristoma
+C_0187:Choroiditis, Chorioretinitis
+C_0188:Chromoblastomycosis
+C_0189:Chronic Cystic Mastitis, Fibrocystic Disease of the Breast
+C_0190:Chronic Fatigue Syndrome
+C_0191:Chronic Obstructive Pulmonary Disease
+C_0192:Chyluria
+C_0193:Cirrhosis (liver)
+C_0194:Cleft Lip, Nose, and/or Palate, Harelip
+C_0195:Club Foot
+C_0197:Coagulation Defect (Hemophilia)
+C_0198:Coccidioidomycosis
+C_0199:Conduct Disturbance
+C_0200:Cold, Common
+C_0201:Colic
+C_0202:Colitis
+C_0203:Collagen Diseases
+C_0205:Color Blindness
+C_0206:Colostomy
+C_0207:Condyloma Acuminata (Ano-Genital Warts)
+C_0208:Congenital Abnormalities - Breast
+C_0209:Congenital Abnormalities - Central Nervous System, Other Than Spinal Cord
+C_0210:Congenital Abnormalities - Dental
+C_0211:Congenital Abnormalities - Ear
+C_0212:Congenital Abnormalities - Eye
+C_0213:Congenital Abnormalities - Genital and Urinary System
+C_0215:Congenital Abnormalities - Mouth
+C_0216:Congenital Abnormalities - Musculoskeletal
+C_0218:Congenital Abnormalities - Respiratory System
+C_0219:Congenital Abnormalities - Spinal Cord
+C_0220:Congenital Abnormalities - Stomach and Throat
+C_0221:Congenital Abnormalities - Vertebrae
+C_0223:Congenital Heart Disease
+C_0224:Congestive Heart Failure
+C_0225:Conjunctival Xerosis
+C_0226:Conjunctivitis
+C_0227:Constipation
+C_0228:Cor Pulmonale
+C_0229:Cornea Transplant
+C_0230:Corneal Opacity
+C_0231:Corneal Ulcer
+C_0232:Coronary Artery Disease
+C_0233:Cowpox
+C_0234:Craniosynostosis
+C_0235:Croup
+C_0236:Cryptococcosis
+C_0237:Cushing's Disease or Syndrome
+C_0238:Cyanosis
+C_0240:Cystic Fibrosis
+C_0241:Cystic Hygroma
+C_0242:Cystitis
+C_0243:Cystocele - Rectocele
+C_0244:Cytomegalovirus
+C_0245:Dacryocystitis
+C_0246:De Quervain's Disease (Stenosing Tenosynovitis)
+C_0247:Deafness
+C_0248:Degenerative Nerve Disease
+C_0250:Demyelinating Disease
+C_0251:Dengue
+C_0252:Dermatofibroma
+C_0253:Dermatomyositis
+C_0254:Detached Retina
+C_0255:Deviated Septum (Nasal Septal Deviation/Perforated Nasal Septum)
+C_0256:Dextrocardia
+C_0257:Diabetes Insipidus
+C_0259:Diabetes, Gestational
+C_0261:Diarrhea
+C_0262:Diastasis Recti
+C_0263:Diphtheria
+C_0264:Diplopia
+C_0265:Degenerative Disk Disease (DDD)
+C_0266:Slipped Disk
+C_0271:Drug Poisoning
+C_0272:Dry Eye
+C_0273:Dumping Syndrome
+C_0274:Dupuytren's Contracture
+C_0275:Dwarfism
+C_0276:Dyshidrosis
+C_0277:Dyslexia
+C_0278:Dysmenorrhea
+C_0279:Dyspepsia
+C_0280:Dysphagia
+C_0281:Dyspnea
+C_0282:Dystrophy, Muscular
+C_0283:Dysuria
+C_0284:Tympanic Membrane (Ear Drum) Perforation
+C_0285:Echinococcosis
+C_0286:Eclampsia
+C_0287:Ectopic Pregnancy
+C_0288:Ectropion
+C_0289:Edema - Brain
+C_0291:Edema - Larynx
+C_0292:Edema - Other, Unspecified
+C_0293:Edema - Penis
+C_0294:Edema - Pregnancy
+C_0295:Edema - Retinal
+C_0296:Embolism, Pulmonary
+C_0297:Emotional Disturbance
+C_0298:Encephalitis
+C_0299:Encephalopathy
+C_0300:Endarteritis
+C_0301:Endometrial Hyperplasia
+C_0303:Endometriosis
+C_0304:Endometritis
+C_0305:Enlarged Uterus
+C_0306:Enlargement of Liver
+C_0307:Enterocolitis
+C_0308:Enuresis (Bed Wetting)
+C_0309:Eosinophilia
+C_0310:Epicondylitis (Tennis Elbow)
+C_0311:Epilepsy (Convulsions and Seizures)
+C_0312:Epistaxis
+C_0313:Erythema Multiforme
+C_0314:Erythema Nodosum
+C_0315:Erythroblastosis Fetalis
+C_0316:Esophageal Achalasia or Cardiospasm
+C_0317:Esophageal Stricture
+C_0318:Esophageal Ulcer
+C_0319:Esophageal Varicosities
+C_0320:Esophagitis
+C_0321:Exophthalmos
+C_0322:Exostosis
+C_0323:Exstrophy of Urinary Bladder
+C_0324:Extrinsic Allergic Alveolitis
+C_0325:Fainting
+C_0326:Familial periodic paralysis
+C_0327:Fanconi's Syndrome
+C_0328:Farsightedness
+C_0329:Fasciitis
+C_0330:Fatty Liver
+C_0331:Fetal Alcohol Syndrome
+C_0332:Fetal Arrhythmia
+C_0333:Fetal Chromosone Abnormality
+C_0334:Fetal Hemorrhage
+C_0335:Fetal Malposition
+C_0336:Fever
+C_0338:Fibromyalgia (Fibrositis, Myofibrositis)
+C_0339:Filariasis
+C_0340:Fissure of nipple
+C_0341:Fistula
+C_0342:Flat Feet
+C_0343:Flatulence
+C_0344:Flexion Contracture
+C_0345:Floating Kidney
+C_0346:Folliculitis
+C_0347:Food Allergy
+C_0348:Food Poisoning
+C_0349:Fractures
+C_0350:Fragile X syndrome
+C_0351:Frequent Urination
+C_0352:Friedreich's Ataxia
+C_0353:Frohlich's Syndrome
+C_0354:Frostbite
+C_0355:Fructosemia
+C_0356:Fungus Infections
+C_0357:G-6-PD Deficiency
+C_0358:Galactorrhea
+C_0359:Galactosemia
+C_0360:Ganglion
+C_0361:Gangrene
+C_0362:Gastritis
+C_0364:Gastrointestinal Hemorrhage
+C_0365:Gastrointestinal Perforation
+C_0366:Gastrostomy
+C_0367:Gastroparesis
+C_0371:Gilbert's Disease
+C_0372:Gingivitis
+C_0373:Glaucoma
+C_0374:Glomerulosclerosis
+C_0375:Glossitis
+C_0376:Glycogen Storage Disease
+C_0377:Glycosuria, Glucosuria
+C_0378:Goiter (Colloid)
+C_0379:Gonorrhea
+C_0380:Goodpasture's Syndrome
+C_0381:Gout
+C_0382:Granuloma Inguinale
+C_0383:Granuloma, Pyogenicum
+C_0384:Gray Syndrome
+C_0385:Guillain-Barre Syndrome
+C_0386:Gynecomastia
+C_0387:HIV / AIDS
+C_0388:HTLV Retrovirus Infection
+C_0389:Hallucinations
+C_0391:Hamman-Rich Disease
+C_0392:Hammertoe
+C_0393:Hansen's Disease (Leprosy)
+C_0394:Hantavirus Infection
+C_0395:Hashimoto's Disease
+C_0396:Head Injury
+C_0397:Headaches
+C_0398:Heart Enlargement
+C_0399:Heart Murmur
+C_0400:Heart Transplant
+C_0401:Heat Prostration or Exhaustion
+C_0402:Helminth (round worm) Infection
+C_0403:Hemangioma
+C_0404:Hemarthrosis
+C_0405:Hematemesis
+C_0406:Hematuria
+C_0407:Hemochromatosis
+C_0408:Hemoglobinuria
+C_0409:Hemoptysis
+C_0410:Hemorrhage
+C_0411:Hemorrhage - Postpartum
+C_0412:Hemorrhagic Fever
+C_0413:Hemorrhoids
+C_0414:Henoch's Purpura (Schonlein-Henoch's)
+C_0415:Hepatic Infarction
+C_0416:Hepatic Vein Thrombosis (Budd-Chiari syndrome)
+C_0417:Hepatitis
+C_0418:Hernia
+C_0419:Herpes
+C_0420:Herpes Ocular (Herpes Keratitis)
+C_0422:High Risk Pregnancy
+C_0423:Hirschsprung's Disease (Megacolon)
+C_0424:Hirsutism
+C_0425:Histoplasmosis
+C_0426:Hormonal Imbalance
+C_0427:Horseshoe Kidney
+C_0428:Hyaline Membrane Disease
+C_0429:Hydatid Mole (Hydatidiform)
+C_0430:Hydrocele
+C_0431:Hydrocephalus
+C_0432:Hydronephrosis
+C_0433:Hydrops Fetalis
+C_0434:Hymen, Imperforate
+C_0435:Hypercholesterolemia
+C_0436:Hyperemesis Gravidarum
+C_0437:Hyperhidrosis (Excessive Sweating)
+C_0438:Hyperparathyroidism
+C_0439:Hyperpituitarism
+C_0440:Hypersplenism
+C_0441:Hypertension
+C_0442:Hyperthyroidism
+C_0443:Hypertrophic Elongation of Cervix
+C_0444:Hypogammaglobulinemia
+C_0445:Hypoglycemia
+C_0446:Hypokalemia
+C_0447:Hypoparathyroidism
+C_0449:Hypopituitarism
+C_0450:Hypospadias
+C_0451:Hypotension
+C_0452:Hypothyroidism
+C_0453:Hystiocytosis
+C_0454:Ichthyosis
+C_0455:Ileitis
+C_0457:Immunodeficiency Disorder
+C_0458:Impaired Vision
+C_0459:Impotence
+C_0460:Incompetent Cervix
+C_0461:Incontinence (Fecal)
+C_0462:Incontinence (Urinary)
+C_0463:Indeterminate Sex
+C_0464:Infertility
+C_0465:Inflammatory Arthritis
+C_0466:Inflammatory Arthropathy Secondary to Infection
+C_0467:Influenza
+C_0468:Insomnia
+C_0469:Intermenstrual Pain
+C_0470:Interstitial emphysema
+C_0471:Intestinal Obstruction
+C_0472:Intestine Transplant
+C_0473:Intussusception
+C_0474:Iritis or Iridocyclitis (Anterior Uveitis)
+C_0475:Ischemic Colitis
+C_0476:Jaundice
+C_0477:Jejunal Ulcer
+C_0478:Joint Calcification
+C_0480:Kawasaki's Disease
+C_0481:Keloid
+C_0482:Keratoconus
+C_0483:Keratosis
+C_0484:Kernicterus
+C_0485:Cyst - Kidney
+C_0486:Kidney Stones
+C_0487:Kidney Transplant
+C_0488:Kimmelstiel-Wilson Syndrome
+C_0489:Klinefelter's Syndrome
+C_0490:Knee Deformity
+C_0491:Knee Injury (Internal Derangement of Knee)
+C_0492:Lactose Intolerance
+C_0493:Laryngitis
+C_0494:Larynx, Papilloma of
+C_0495:Leishmaniasis
+C_0496:Lens - Subluxation
+C_0497:Leptospirosis
+C_0498:Leriche Syndrome
+C_0499:Leukoplakia
+C_0500:Leukorrhea
+C_0501:Lice
+C_0503:Limb Pain
+C_0504:Lipoma
+C_0506:Listeriosis
+C_0507:Liver Enzyme, Abnormal Tests
+C_0508:Liver Necrosis
+C_0509:Liver Transplant
+C_0511:Loss of Teeth
+C_0512:Lung Nodule
+C_0513:Lung Transplant
+C_0514:Lupus Erythematosus
+C_0515:Lyme Disease
+C_0516:Lymphadenopathy
+C_0517:Lymphedema
+C_0518:Macroglobulinemia
+C_0519:Macular Degeneration
+C_0520:Maggot Infestation
+C_0521:Malabsorption Syndrome
+C_0522:Malaria
+C_0523:Mallory Weiss Syndrome
+C_0524:Malnutrition
+C_0525:Malposition and malpresentation of fetus
+C_0526:Marfan Syndrome
+C_0527:Mastitis
+C_0528:Mastoiditis
+C_0529:Measles
+C_0530:Meckel's Diverticulum
+C_0531:Meconium Aspiration
+C_0532:Mediastinitis
+C_0534:Melena
+C_0535:Meniere's Disease (or Syndrome)
+C_0536:Meningioma
+C_0537:Meningitis
+C_0538:Meningococcemia
+C_0539:Menopause
+C_0540:Menopause - Surgical, radiation or drug induced
+C_0541:Mental Deficiency or Retardation
+C_0542:Metabolism and Nutrition Problems
+C_0544:Migraines
+C_0545:Missed Abortion (Retained Fetus)
+C_0547:Mononucleosis
+C_0548:Morphea
+C_0549:Mucopolysaccharidosis
+C_0550:Multiple Endocrine Adenoma
+C_0551:Multiple Sclerosis
+C_0552:Mumps
+C_0553:Muscle Disorder
+C_0555:Myalgia
+C_0556:Myasthenia Gravis
+C_0557:Mycetoma
+C_0558:Myelitis
+C_0559:Myeloproliferative Disorder
+C_0560:Myocarditis
+C_0561:Myofibrositis
+C_0562:Myoglobinuria
+C_0563:Myositis
+C_0564:Myotonia Congenital
+C_0566:Narcolepsy
+C_0567:Nearsightedness
+C_0568:Neonatal Dehydration
+C_0569:Nephritis (Glomerulonephritis)
+C_0570:Nephrogenic Diabetes Insipidus
+C_0571:Nephrotic Syndrome
+C_0572:Neuritis
+C_0573:Neurogenic Bladder
+C_0574:Newborn child - Single
+C_0575:Newborn child - Triplets or other multiple births
+C_0576:Newborn child - Twins
+C_0577:Niemann-Pick Disease
+C_0578:Nocturia
+C_0579:Paroxysmal Nocturnal Hemoglobinuria (PNH)
+C_0580:Nystagmus
+C_0581:Obesity
+C_0582:Oophoritis
+C_0583:Open Wound
+C_0584:Atrophy - Optic
+C_0585:Optic Neuritis
+C_0586:Orchitis
+C_0587:Ornithosis
+C_0588:Osler-Weber-Rendu Disease
+C_0589:Osteitis
+C_0590:Osteoarthritis
+C_0591:Osteochondrosis
+C_0592:Osteogenesis Imperfecta
+C_0593:Osteoma
+C_0594:Osteomyelitis
+C_0595:Osteoporosis
+C_0596:Otalgia (ear pain)
+C_0597:Otitis Externa
+C_0598:Otitis Media
+C_0599:Otorrhea
+C_0600:Otosclerosis
+C_0602:Paget's Disease of Bone
+C_0603:Palindromic Rheumatism
+C_0604:Pancreas Transplant
+C_0606:Pancreatitis
+C_0607:Panniculitis
+C_0609:Papillitis, Optic
+C_0610:Paralysis
+C_0611:Parasites, Intestinal
+C_0612:Paresthesia
+C_0613:Parkinson's Disease
+C_0614:Pathologic Fracture
+C_0615:Pellagra
+C_0616:Pelvic Inflammatory Disease
+C_0617:Pelvic or Fetal Diproportion
+C_0618:Pemphigus
+C_0619:Peptic Ulcer
+C_0620:Periarteritis Nodosa (Polyarteritis Nodosa)
+C_0621:Pericarditis
+C_0622:Periostitis
+C_0623:Peripheral Vascular Disease
+C_0624:Peritonitis
+C_0625:Periventricular Leukomalacia
+C_0626:Petechiae
+C_0627:Peyronie's Disease
+C_0628:Pharyngitis
+C_0629:Phenylketonuria (PKU)
+C_0630:Phimosis
+C_0631:Phlebitis
+C_0632:Pinched Nerve
+C_0633:Pink Eye
+C_0634:Pinta
+C_0635:Placenta Previa
+C_0636:Plague
+C_0637:Pleurisy
+C_0638:Pneumoconiosis
+C_0639:Pneumocystis Pneumonia
+C_0640:Pneumonia
+C_0641:Pneumothorax (Collapsed Lung)
+C_0642:Poisoning
+C_0643:Poliomyelitis
+C_0644:Polycystic Ovary Disease (Stein Levinthal Syndrome)
+C_0645:Polycythemia Vera
+C_0646:Polymyalgia Rheumatica
+C_0647:Polymyositis
+C_0648:Polyp, Bladder
+C_0649:Polyp, Female Organ
+C_0650:Gastrointestinal Polyp
+C_0651:Polyp, Nasal
+C_0652:Polyp, Vocal Cord
+C_0653:Polyuria
+C_0654:Porphyria
+C_0655:Portal vein thrombosis
+C_0656:Post Partum Hemorrhage
+C_0657:Postcholecystectomy Syndrome
+C_0658:Postmenopausal Bleeding
+C_0660:Prader-Willi syndrome
+C_0661:Precipitate Labor
+C_0662:Pregnancy
+C_0663:Premature Birth
+C_0664:Premature Labor
+C_0665:Premenstrual Syndrome, Dysphoric Disorder, or Premenstrual Tension
+C_0666:Priapism
+C_0669:Prolapsed Rectum
+C_0670:Prolapsed Uterus
+C_0671:Prostate Dysplasia (PIN I and PIN II)
+C_0672:Prostate Hypertrophy
+C_0673:Prostate Specific Antigen Elevation
+C_0674:Prostatic Abscess
+C_0675:Prostatic Calculi
+C_0676:Prostatitis
+C_0677:Prosthetic Device
+C_0678:Pseudotumor Cerebri
+C_0679:Psoriasis
+C_0680:Psoriatic Arthritis
+C_0681:Psychopathic Personalities
+C_0683:Pterygium
+C_0684:Pulmonary Congestion
+C_0685:Pulmonary Edema
+C_0686:Pulmonary Fibrosis
+C_0687:Pulmonary Hypertension
+C_0688:Pulmonary Osteoarthropathy
+C_0689:Pulmonic Valve Regurgitation (Insufficiency)
+C_0690:Purpura
+C_0691:Pyelonephritis
+C_0692:Acquired Pyloric Stenosis
+C_0693:Pylorospasm
+C_0694:Pyogenic Arthritis
+C_0695:Pyorrhea
+C_0696:Rabies
+C_0698:Rat-bite fever
+C_0699:Raynaud's Disease
+C_0700:Rectal Stricture
+C_0701:Rectal Ulcer
+C_0702:Reiter's Disease/Syndrome
+C_0703:Relapsing Fever
+C_0704:Renal Failure
+C_0705:Respiratory syncytial virus (RSV)
+C_0706:Retained Foreign Body in Muscle
+C_0707:Retained Placenta
+C_0708:Retinal Artery and Vein Occlusion
+C_0709:Retinal Hemorrhage
+C_0710:Retinitis Pigmentosa
+C_0711:Rh Incompatibility
+C_0712:Rheumatic Fever
+C_0713:Rheumatic Heart Disease
+C_0714:Rheumatoid Arthritis
+C_0715:Rhinoscleroma
+C_0716:Rhinosporidiosis
+C_0717:Rickets
+C_0718:Rotator Cuff
+C_0719:Rubella
+C_0720:SARS
+C_0721:Sarcocystosis
+C_0722:Sarcoidosis, Boeck's
+C_0723:Scabies
+C_0724:Scarlet Fever (Scarlatina)
+C_0725:Schistosomiasis
+C_0726:Sciatica
+C_0727:Scleroderma
+C_0728:Scurvy
+C_0729:Senile Dementia
+C_0730:Septicemia
+C_0731:Sexual Deviance
+C_0732:Shingles, Herpes Zoster
+C_0733:Siamese Twins
+C_0734:Sinusitis
+C_0735:Sjogren’s Syndrome
+C_0737:Skin Transplant
+C_0738:Skull Fractures
+C_0739:Sleep Apnea/Apnea of Newborn
+C_0741:Smallpox
+C_0742:Somatic or Segmental dysfunction
+C_0743:Speech Abnormality
+C_0744:Spermatocoele
+C_0745:Spina Bifida
+C_0746:Spinal Cord Injury
+C_0747:Spinal Curvature
+C_0748:Spinal Stenosis
+C_0749:Splenomegaly
+C_0750:Spondylitis
+C_0751:Spondylolisthesis or Spondylosis
+C_0752:Tropical Sprue
+C_0755:Stomatitis
+C_0756:Strabismus
+C_0757:Stroke, Cerebral
+C_0759:Subacute Bacterial Endocarditis
+C_0760:Subcutaneous Emphysema
+C_0761:Subdural Hematoma
+C_0763:Superior Vena Cava Syndrome
+C_0764:Syndactylism
+C_0765:Synovitis
+C_0766:Syphilis
+C_0767:Syringomyelia
+C_0768:Systemic Candidiasis
+C_0770:TIC Douloureux
+C_0771:Tobacco Usage
+C_0773:Tachypnea
+C_0774:Tay-Sachs Disease
+C_0775:Temporal Arteritis
+C_0776:Temporomandibular Joint Syndrome (TMJ)
+C_0777:Testicular Torsion
+C_0778:Tetanus
+C_0779:Thoracic Outlet Syndrome
+C_0780:Thromboangiitis, Thromboangiitis Obliterans (Buerger's Disease)
+C_0781:Thymoma
+C_0783:Thyroid Disease
+C_0784:Tick-Borne Fever
+C_0785:Tinnitus
+C_0786:Tonsillitis
+C_0787:Torn Cartilage
+C_0788:Torticollis/Wryneck
+C_0789:Tourette Syndrome
+C_0790:Toxoplasmosis
+C_0791:Tracheal Stenosis
+C_0792:Trachoma (Granular Conjunctivitis)
+C_0793:Transient Ischemic Attack (TIA)
+C_0794:Traumatic Neuropathy
+C_0795:Trematode Infections
+C_0796:Tremor
+C_0797:Trichinosis
+C_0798:Trichomoniasis
+C_0799:Tricuspid Stenosis
+C_0800:Tricuspid Valve Regurgitation (Insufficiency)
+C_0801:Trypanosomiasis
+C_0803:Tuberculosis
+C_0804:Tuberous sclerosis
+C_0805:Tularemia
+C_0807:Turner's Syndrome
+C_0808:Typhus
+C_0809:Undescended Testicle
+C_0810:Upper Respiratory Infection
+C_0812:Ureteral Stricture
+C_0813:Urethral Stricture
+C_0814:Urine Retention
+C_0815:Vaginal Enterocele
+C_0816:Vaginal Prolapse
+C_0817:Vaginal pain
+C_0818:Vaginal stricture
+C_0819:Vaginitis, Monilial
+C_0820:Vaginitis, Nonspecific
+C_0821:Valvulitis
+C_0822:Varicella (Chicken Pox)
+C_0823:Varicocele
+C_0825:Varicose Veins
+C_0826:Vena Cava Thrombosis
+C_0827:Ventricular Fibrillation
+C_0828:Ventricular Tachycardia
+C_0829:Vertigo
+C_0830:Vesicoureteral Reflux (VUR)
+C_0831:Villonodular Synovitis
+C_0832:Viral Exanthem
+C_0833:Viral Syndrome
+C_0834:Vitamin K Deficiency
+C_0835:Vocal Cord Paralysis
+C_0836:Volkmann's Ischemia
+C_0837:Volvulus
+C_0838:Neurofibromatosis
+C_0839:Von Willebrand Disease
+C_0840:Webbing of neck
+C_0841:Wegener's Granulomatosis
+C_0842:Whiplash
+C_0843:Whooping Cough
+C_0844:Wilson's Disease
+C_0846:Xanthinuria
+C_0847:Yaws
+C_0848:Yellow Fever
+C_0850:Zygomycosis
+C_0901:Abdominal Pain
+C_0902:Abdominal Rigidity and Tenderness
+C_0903:Abnormal EKG
+C_0904:Abnormal Mammogram
+C_0905:Abscess - Tooth
+C_0906:Achilles Tendonitis
+C_0907:Acquired Deformity of Limb
+C_0909:Acquired Musculoskeletal Deformity, Other
+C_0910:Acute Respiratory Failure
+C_0911:Adult Abuse
+C_0913:Angiodysplasia of Intestine
+C_0914:Anorexia (Excluding Anorexia Nervosa)
+C_0915:Anticoagulant Therapy
+C_0916:Aortic or Mitral Valve Disease
+C_0918:Atrophy - Cervix
+C_0919:Atrophy - Muscle
+C_0920:Atrophy - Ovary
+C_0921:Atrophy - Prostate
+C_0922:Atrophy - Salivary Gland
+C_0923:Atrophy - Vagina
+C_0924:Autoimmune Disease
+C_0925:Barotrauma
+C_0928:Bladder Diverticulum
+C_0929:Bladder Laceration, Contusion
+C_0930:Bladder Outlet Obstruction
+C_0931:Breast Pain
+C_0932:Breath Holding
+C_0933:Bronchopulmonary Dysplasia
+C_0934:Cancer - Other Endocrine
+C_0935:Cancer - Parathyroid
+C_0936:Cancer - Skin, Other Than Melanoma
+C_0937:Cardiac Valve Replacement
+C_0938:Cataract Lens Replacement
+C_0939:Cervical Stricture
+C_0940:Cervical Syndrome, Occipital Neuralgia
+C_0941:Cervicalgia (Neck Pain)
+C_0942:Chemical Bronchitis
+C_0943:Cheyne-Stokes Respirations
+C_0944:Child Abuse
+C_0945:Chlamydia Infection, Other Than Urethritis
+C_0946:Cholera
+C_0947:Chronic Rhinitis, Non-Allergic
+C_0949:Coma
+C_0950:Congenital Abnormalities - Chromosomes
+C_0951:Congenital Abnormalities - Face
+C_0952:Congenital Abnormalities - Integument
+C_0953:Congenital Abnormalities - Lower Limbs
+C_0954:Congenital Abnormalities - Upper Limbs
+C_0955:Congenital Abnormalities - Uterus
+C_0956:Congenital Accessory Skin Tags
+C_0957:Congenital Biliary Atresia
+C_0958:Congenital Cytomegalovirus Infection
+C_0959:Congenital Peripheral Vascular Disease
+C_0960:Congenital Rubella
+C_0961:Cough
+C_0962:Cyst - Bone
+C_0963:Cyst - Breast
+C_0964:Cyst - Cerebral
+C_0965:Cyst - Eyelid
+C_0967:Cyst - Ovary
+C_0968:Cyst - Pancreas
+C_0969:Cyst - Sebaceous
+C_0970:Cyst - Thyroglossal Duct
+C_0971:Cyst - Thyroid
+C_0972:Cyst - Vagina, Vulva
+C_0973:Decubitus Ulcer
+C_0974:Delivery Complications
+C_0975:Dermatochalasis
+C_0976:Developmental Delay
+C_0977:Dislocation - Ankle
+C_0978:Dislocation - Elbow
+C_0979:Dislocation - Foot
+C_0980:Dislocation - Hip, Knee
+C_0981:Dislocation - Other
+C_0982:Dislocation - Shoulder
+C_0983:Dislocation - Vertebra
+C_0984:Dislocation - Wrist
+C_0989:Duodenitis
+C_0990:Ectopic Hormone
+C_0991:Ehlers-Danlos Syndrome
+C_0992:Elevated Blood Pressure, Unsustained
+C_0993:Empyema
+C_0994:Endophthalmitis
+C_0995:Entropion
+C_0996:Eosinophilic Pneumonitis
+C_0997:Esophageal Diverticulum
+C_0998:Esophageal Hemorrhage
+C_0999:Fat Embolism
+C_1000:Fatigue, Asthenia Other Than Chronic Fatigue Syndrome
+C_1001:Fecal Impaction
+C_1002:Fetal Abnormality, Non-Specific
+C_1003:Gastric Diverticulum
+C_1004:Gastroduodenal Fistula
+C_1005:Gastrointestinal Hemorrhage - Rectal and Anal
+C_1006:Heartburn
+C_1007:Hepatic Coma
+C_1008:Hepatoptosis (Liver Displacement)
+C_1009:Hepatorenal Syndrome
+C_1010:Hiccough
+C_1011:Hidradenitis
+C_1012:Hypercalcemia
+C_1013:Hyperestrogenism
+C_1014:Hyperkalemia
+C_1015:Hypersensitivity Angiitis
+C_1016:Hypertensive Heart Disease
+C_1017:Hypocalcemia
+C_1018:Hyposmolality
+C_1019:Hypovolemia
+C_1020:Hydroureter
+C_1021:Idiosyncratic Allergic Reaction
+C_1022:Impacted Cerumen
+C_1023:Infectious Diarrhea
+C_1024:Interstitial Cystitis
+C_1025:Intestinal Atresia
+C_1026:Joint Replacement - Ankle
+C_1027:Joint Replacement - Elbow
+C_1028:Joint Replacement - Hip
+C_1029:Joint Replacement - Knee
+C_1030:Joint Replacement - Shoulder
+C_1031:Joint Replacement - Wrist
+C_1032:Keratitis
+C_1033:Keratoconjunctivitis
+C_1034:Kidney Laceration, Contusion
+C_1035:Laurence-Moon - Biedl Syndrome
+C_1036:Lethal Midline Granuloma
+C_1037:Ligament Injury - Ankle
+C_1038:Ligament Injury - Foot
+C_1039:Ligament Injury - Other
+C_1040:Limb Edema
+C_1041:Liver Laceration, Contusion
+C_1042:Loose Body  in Joint
+C_1044:Microcephalus
+C_1045:Moluscum Contagiosum
+C_1046:Morton's Neuroma
+C_1047:Multiple Congenital Anomalies
+C_1048:Muscle Spasm
+C_1049:Nasal Turbinate Hypertrophy
+C_1050:Nausea Or Vomiting
+C_1051:Neonatal Diabetes
+C_1052:Nevus, Non-Neoplastic
+C_1053:Non Venereal Spirochetal Disease
+C_1054:Nonspecific Low Blood Pressure
+C_1055:Obstructive Uropathy
+C_1056:Occult Blood In Stool
+C_1057:Onychomycosis
+C_1058:Optic Neuritis
+C_1059:Other Arthropathies
+C_1060:Other Derangement of Joint
+C_1061:Palpitations (No Arrhythmia Diagnosis)
+C_1062:Papilledema
+C_1063:Paratyphoid, Typhoid Diarrhea
+C_1064:Pectus Excavatum
+C_1065:Pericardial Friction Rub
+C_1066:Pigeon Chest
+C_1067:Pleural Effusion
+C_1068:Polycystic Liver Disease
+C_1069:Polydactyly
+C_1070:Polydipsia
+C_1071:Polyp, Colon
+C_1072:Portal Hypertension
+C_1074:Premature Rupture of Membranes
+C_1075:Previous C Section
+C_1076:Prosthetic Device Complication
+C_1077:Radiation Pneumonitis
+C_1079:Renal Artery Stenosis
+C_1080:Renal Hypertrophy
+C_1081:Renal Infarction
+C_1082:Renal Osteodystrophy
+C_1083:Retinopathy
+C_1084:Retrodisplacement of Uterus (Retroflexion and Retroversion)
+C_1085:Rhabdomyolysis
+C_1086:Seborrheic Dermatitis
+C_1087:Short Stature (Exclude Dwarfism)
+C_1088:Skin Conditions, Other
+C_1089:Skin Scar and Fibrosis
+C_1090:Skin Ulcer, Stasis or Neurogenic
+C_1091:Spleen Laceration, Contusion
+C_1092:Subarachnoid Hemorrhage
+C_1093:Swallowed Blood Syndrome
+C_1094:Takayasu's Disease
+C_1095:Tendon Injury, Finger
+C_1096:Thrombocytopenia
+C_1097:Thrombotic Thrombocytopenic Purpura
+C_1098:Traumatic Arthritis
+C_1099:Trichiasis
+C_1100:Trigger Finger
+C_1101:Tumor, Benign
+C_1102:Tumor, Uncertain Behavior
+C_1103:Urethral Diverticulum
+C_1104:Urethritis
+C_1105:Urine Infection, Site Not Specified
+C_1106:Vaginal Dysplasia
+C_1107:Vascular Hamartomas (Birth Marks, Port Wine Stains)
+C_1108:Vitamin D deficiency
+C_1109:Vitiligo
+C_1110:Vitreous Disorders
+C_1111:Wheezing
+C_1112:Zoonotic Disease
+C_2000:Avian Flu Virus
+C_2001:Cancer - Carcinoid Tumor
+C_2002:Exfoliation Due To Erythematous Condition
+C_2003:Graft-Versus-Host Disease
+C_2004:Parvovirus B19
+C_2005:Poxvirus Infections
+C_2006:Vulvodynia
+C_2010:H1N1 Flu Virus
+C_2012:Pyuria
+C_2013:Cancer - Other, Unspecified
+C_2014:Occupational Therapy
+C_2015:Speech Therapy
+C_2100:Breast Implantation, Reconstruction and Reduction
+C_2101:Cardiac Catheterization
+C_2102:Colectomy
+C_2103:Craniectomy
+C_2104:D&C (Dilation + Curettage)
+C_2105:Gastrectomy
+C_2106:Gastric Bypass Surgery
+C_2107:Heart Pacemaker
+C_2108:Hysterectomy
+C_2109:Intestinal Resection
+C_2110:Iridectomy
+C_2111:Laryngectomy
+C_2112:Liposuction
+C_2113:Lobectomy, Lung
+C_2114:Nephrectomy
+C_2115:Nephrotomy
+C_2116:Oophorectomy
+C_2117:Penile Prosthesis
+C_2118:Physical Therapy
+C_2119:Plastic Surgery
+C_2120:Pneumonectomy
+C_2121:Radial Keratotomy
+C_2122:Removal of Small Intestine
+C_2123:Shunts
+C_2124:Spinal Fusion
+C_2125:Splenectomy
+C_2126:Sympathectomy
+C_2127:Testicle Removed
+C_2200:Cochlear Implants
+C_90003:Abortion, Induced Related
+C_90080:Bacterial Infection Related
+C_90088:Birth Abnormalities Related
+C_90089:Birth Asphyxia Related
+C_90124:Cancer - Colon/Rectum Related
+C_90181:Cholelithiasis Related
+C_90191:Chronic Obstructive Pulmonary Disease Related
+C_90212:Congenital Abnormalities - Eye Related
+C_90216:Congenital Abnormalities - Musculoskeletal Related
+C_90218:Congenital Abnormalities - Respiratory System Related
+C_90220:Congenital Abnormalities - Stomach and Throat Related
+C_90228:Cor Pulmonale Related
+C_90232:Coronary Artery Disease Related
+C_90254:Detached Retina Related
+C_90258:Diabetes Mellitus Related
+C_90271:Drug Poisoning Related
+C_90349:Fractures Related
+C_90356:Fungus Infections Related
+C_90362:Gastritis Related
+C_90445:Hypoglycemia Related
+C_90541:Mental Deficiency or Retardation Related
+C_90581:Obesity Related
+C_90597:Otitis Externa Related
+C_90602:Paget's Disease of Bone Related
+C_90606:Pancreatitis Related
+C_90611:Parasites, Intestinal Related
+C_90640:Pneumonia Related
+C_90642:Poisoning Related
+C_90662:Hx of Pregnancy
+C_90663:Premature Birth Related
+C_90672:Prostate Hypertrophy Related
+C_90675:Prostatic Calculi Related
+C_90682:Psychosis, Neurosis, Depression, Psychotherapy Related
+C_90704:Renal Related
+C_90713:Rheumatic Heart Disease Related
+C_90738:Skull Fractures Related
+C_90746:Spinal Cord Injury Related
+C_90750:Spondylitis Related
+C_90783:Thyroid Disease Related
+C_90803:Tuberculosis Related
+C_90826:Vena Cava Thrombosis Related
+C_90910:Acute Respiratory Failure Related
+C_90974:Pregnancy Related
+C_91019:Hypovolemia Related
+C_91059:Other Arthropathies Related
+C_91088:Skin Related
+C_91101:Tumor, Benign Related
+C_99001:Other CNS Disorders
+C_99002:Other Infections
+C_99003:Complication of Procedures
+C_99004:Cancer, Malignant Unspecified
+C_99005:Chronic Pancreatis
+C_99006:Parathyrodism
+C_99007:Adrenal Gland Diseases
+C_99008:Metabolic Abnormality, Congenital
+C_99009:High Cholesterol
+C_99010:Other Metabolism Disorders
+C_99011:Nutritional Disorder
+C_99012:Other Blood Diseases
+C_99013:Other Mental Disorders
+C_99014:Sleep Disorders
+C_99015:Other Pain Disorders
+C_99016:Other Brain Conditions
+C_99017:Other Eye Disorders
+C_99018:Other Heart Diseases
+C_99019:Other CVD
+C_99020:Other Circulatory Disorders
+C_99022:Acute Nose/Throat/Common Cold
+C_99023:Respiratory /Other Chest Symptoms
+C_99024:Larynx/vocal cord diseases
+C_99025:Other Lung Disease/Condition
+C_99026:Teeth/Gum/Jaw Disorders
+C_99027:Salivary Gland Disease
+C_99028:Other Stomach Disorders
+C_99029:Other GI Disorders
+C_99030:Other Peritoneal Disorders
+C_99031:Other Liver Disorders
+C_99032:Other Urinary Disorders
+C_99033:Male Genital Disorders
+C_99034:Other Breast Disorders
+C_99035:Other Female Pelvic Disorders
+C_99036:Infections/Parasites during Pregnancy
+C_99037:Other complications of Pregnancy
+C_99038:Disorders of soft tissue
+C_99039:Other Bone Disorders or Congenital
+C_99040:Congenital Respiratory Abn
+C_99041:Congenital Gastrointestinal Abn
+C_99042:Other Congenital Muscolskeletal Abn
+C_99043:Other General Symptoms
+C_99044:Other nervous/muscoloskeletal symptoms
+C_99045:Other Cardiovascular Symptoms
+C_99046:Abdominal/Pelvis Symptoms
+C_99047:Abnormal Blood Findings
+C_99048:Other Obesity
+C_99049:Abn Findings Nervous System
+C_99050:Abn Findings Lung
+C_99051:Contusions/Superficial Injury
+C_99052:Other General Screenings
+C_99053:General Morbidity/Mortality
+C_99054:SIDS
+C_99055:Injury to heart/lung/thorax vessels
+C_99056:Crushing Injury
+C_99057:Injury gastrointestinal/liver/kidney/spleen/pelvis
+C_99058:Injury to Limbs
+C_99059:Open wound head/neck/chest vessels
+C_99060:Open Wound Other Sites
+C_99061:Injury, Late Effects
+C_99062:Other Accidents/Assaults
+C_99063:Open wound/injury lower arm
+C_99064:Foreign body in eye/ear/nose
+C_99065:Foreign body pharynx/larynx
+C_99066:Nerve injury, excl spine/ brain
+C_99067:Early complications of trauma
+C_99068:Injury ext. cause/anaphylctic shock
+C_99069:Accidental Falls
+C_99070:Adverse effects prescribed drugs
+C_99071:Family Hx of Disease
+C_99072:Self-Inflicted Injury/Attempted Suicide
+C_99073:Infectious Disease Contact/Carrier
+C_99074:Vaccine, med exam, other preventive
+C_99075:Hx of Cancer
+C_99076:Hx of other Diseases
+C_99077:Hx Other Circulatory/Respiratory Diseases
+C_99078:Hx of digestive disorders
+C_99079:Hx Genito-urinary disorders
+C_99080:Hx of Reproductive/Pregnancy Disorders
+C_99081:Hx of Arthritis/Connective Tissue Disorders
+C_99082:After Care - Other
+C_99083:Hx of Surgery/Major
+C_99084:Hx of other Health Hazards
+C_99085:Hx of Non Compliance
+C_99086:Contraceptive Services
+C_99087:Other Perinatal Care
+C_99088:General Consultative/Exams
+C_99089:Disorders of internal organs/external sites
+C_99090:Other Organ Transplant Status
+C_99091:Other Organ replacement
+C_99092:Artificial Openings GU
+C_99093:Artificial Openings Other
+C_99094:Other post surgical states
+C_99095:Other machine dependence
+C_99096:Elective Surgery
+C_99097:Prothesis/other device fitting/adjustment
+C_99098:Rehabilitation Services
+C_99099:Chemo/Radiation Therapies
+C_99100:Donor Status
+C_99101:Housing disruption
+C_99102:Family member disruption
+C_99103:Substance Abuse
+C_99104:Care Not Delivered
+C_99105:Social Support
+C_99106:Cancer After Care
+C_99107:Lifestyle Related Issues
+C_99108:Other Psychological & Medical
+C_99109:Body Mass Screening
+C_99110:Suspected/Exposure to hazardous substances
+C_99111:Other Osteomyelitis Disorders
+C_99112:Hypervolemia
+C_99113:Abscess - Female Genital
+C_99114:Abscess - Peritoneal
+C_99115:Acoustic Neuroma
+C_99116:Adenopathy
+C_99117:Anal Fissure
+C_99118:Bankart Lesion
+C_99119:Blepharospasm
+C_99120:Carcinoid Syndrome
+C_99121:Chiari Malformation
+C_99122:Corneal Degeneration
+C_99123:Cyst - Adnexa of Uterus
+C_99124:Cyst - Baker's
+C_99125:Cyst - Bartholin's
+C_99126:Cyst - Mouth/Jaw
+C_99127:Cyst - Orbital
+C_99128:Cyst - Pharynx
+C_99129:Cyst - Prostate
+C_99130:Dislocation - Acetabulum
+C_99131:Dislocation - Arm
+C_99132:Dislocation - Hand
+C_99133:Dislocation - Jaw
+C_99134:Dislocation - Sternum
+C_99135:Diverticulitis
+C_99136:Diverticulosis
+C_99137:Factor V Leiden
+C_99138:Fibroid Tumor, Womb (Uterus), Fibroma, Fibromyoma
+C_99139:Gastric Esophageal Reflux Disorder (GERD)
+C_99142:General Paresis
+C_99144:MRSA Infection
+C_99145:Myoclonus
+C_99146:Myopathy
+C_99148:Newborn Feeding Problems
+C_99149:Osteomalacia
+C_99150:Precocious Puberty (Sexual Precocity)
+C_99151:Proctitis
+C_99152:Progeria
+C_99153:Prognathism
+C_99154:Protozoan Intestinal Infection
+C_99155:Sick Sinus Syndrome
+C_99156:SLAP Lesion
+C_99157:Tabes Dorsalis
+C_99158:Transient Altered Awareness
+C_99160:Vagotomy
+C_99161:Venous Insufficiency
+C_99162:Wolf-Parkinson-White Syndrome
+C_99164:Craniotomy
+C_99165:Injury caused by activities
+C_99166:Retained Foreign Body
+C_3001:Diabetes Mellitus Type 1
+C_3002:Diabetes Mellitus Type 2
+C_3003:Drug Abuse, Opioid
+C_3004:Drug Abuse, Specified Drug, Other Than Opioid
+C_3005:Drug Abuse, Unspecified
+C_3006:Depression
+C_3007:Bipolar Disorder
+C_3008:Neurotic Disorders
+C_3009:Schizophrenia, Psychosis, and Other Mental Disorders
+C_3010:Renal Failure, Chronic, Stage 1
+C_3011:Renal Failure, Chronic, Stage 2
+C_3012:Renal Failure, Chronic, Stage 3
+C_3013:Renal Failure, Chronic, Stage 4
+C_3014:Renal Failure, Chronic, Stage 5
+C_3015:Renal Failure, Chronic, ESRD
+C_3016:Renal Failure, Acute

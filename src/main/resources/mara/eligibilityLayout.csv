@@ -178,4 +178,4 @@
 177;dw_vendor_name;dw_vendor_name;dw_vendor_name;string;;
 178;stage_version;stageVersion;stageVersion;string;;
 179;client_id;clientId;clientId;string;;
-180;integer_member_id;integer_member_id;integer_member_id;string;;
+180;integer_member_id;integer_member_id;integer_member_id;int;;

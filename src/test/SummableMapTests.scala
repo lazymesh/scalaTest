@@ -12,11 +12,11 @@ class SummableMapTests extends FunSuite with BeforeAndAfterEach {
 
     val testMap : SummableMap[String, Double] = new SummableMap[String, Double]
     testMap.put("sum", 8D)
-    println("initially : "+testMap.get("sum"))
+    println("initially : "+testMap("sum"))
     testMap.put("sum", a)
-    println("adding a : "+testMap.get("sum"))
+    println("adding a : "+testMap("sum"))
     testMap.put("sum", b)
-    println("adding b : "+testMap.get("sum"))
+    println("adding b : "+testMap("sum"))
   }
 
   test("testing simple summable map for Float"){
@@ -25,11 +25,11 @@ class SummableMapTests extends FunSuite with BeforeAndAfterEach {
 
     val testMap : SummableMap[String, Float] = new SummableMap[String, Float]
     testMap.put("sum", 8F)
-    println("initially : "+testMap.get("sum"))
+    println("initially : "+testMap("sum"))
     testMap.put("sum", a)
-    println("adding a : "+testMap.get("sum"))
+    println("adding a : "+testMap("sum"))
     testMap.put("sum", b)
-    println("adding b : "+testMap.get("sum"))
+    println("adding b : "+testMap("sum"))
   }
 
   test("testing simple summable map for Integer"){
@@ -38,11 +38,11 @@ class SummableMapTests extends FunSuite with BeforeAndAfterEach {
 
     val testMap : SummableMap[String, Int] = new SummableMap[String, Int]
     testMap.put("sum", 8)
-    println("initially : "+testMap.get("sum"))
+    println("initially : "+testMap("sum"))
     testMap.put("sum", a)
-    println("adding a : "+testMap.get("sum"))
+    println("adding a : "+testMap("sum"))
     testMap.put("sum", b)
-    println("adding b : "+testMap.get("sum"))
+    println("adding b : "+testMap("sum"))
   }
 
   test("testing simple summable map for Long"){
@@ -51,11 +51,11 @@ class SummableMapTests extends FunSuite with BeforeAndAfterEach {
 
     val testMap : SummableMap[String, Long] = new SummableMap[String, Long]
     testMap.put("sum", 3L)
-    println("initially : "+testMap.get("sum"))
+    println("initially : "+testMap("sum"))
     testMap.put("sum", a)
-    println("adding a : "+testMap.get("sum"))
+    println("adding a : "+testMap("sum"))
     testMap.put("sum", b)
-    println("adding b : "+testMap.get("sum"))
+    println("adding b : "+testMap("sum"))
   }
 
   test("testing simple summable map for String"){
@@ -64,11 +64,11 @@ class SummableMapTests extends FunSuite with BeforeAndAfterEach {
 
     val testMap : SummableMap[String, String] = new SummableMap[String, String]
     testMap.put("sum", "zzzzz")
-    println("initially : "+testMap.get("sum"))
+    println("initially : "+testMap("sum"))
     testMap.put("sum", a)
-    println("adding a : "+testMap.get("sum"))
+    println("adding a : "+testMap("sum"))
     testMap.put("sum", b)
-    println("adding b : "+testMap.get("sum"))
+    println("adding b : "+testMap("sum"))
   }
 
   test("testing simple summable map for not supported"){
@@ -76,9 +76,9 @@ class SummableMapTests extends FunSuite with BeforeAndAfterEach {
 
     val testMap : SummableMap[String, Any] = new SummableMap[String, Any]
     testMap.put("sum", Seq("zzzzz", "dfsdf"))
-    println("initially : "+testMap.get("sum"))
+    println("initially : "+testMap("sum"))
     testMap.put("sum", a)
-    println("adding a : "+testMap.get("sum"))
+    println("adding a : "+testMap("sum"))
   }
 
 }

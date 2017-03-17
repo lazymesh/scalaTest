@@ -3,13 +3,10 @@ package officework.doingWithClasses.mara
 import java.util
 
 import main.scala.officework.doingWithObjects.DateUtils
-import milliman.mara.model._
 import org.apache.spark.sql.Row
-import org.apache.spark.sql.expressions.UserDefinedAggregateFunction
+import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types.{DataType, DataTypes, StructField, StructType}
-import org.apache.spark.sql.expressions.MutableAggregationBuffer
 
-import scala.collection.immutable.HashMap
 import scala.collection.mutable
 
 /**

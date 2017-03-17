@@ -1,13 +1,10 @@
 package main.scala.officework.doingWithClasses.mara
 
 
-import java.text.SimpleDateFormat
-
-import main.scala.officework.doingWithObjects.DateUtils
-import milliman.mara.exception.{MARAClassLoaderException, MARALicenseException}
-import milliman.mara.model.{InputEnums, ModelProcessor, ModelProperties}
 import officework.doingWithClasses.mara.{MaraUDAF, MaraUtils}
-import org.apache.spark.SparkFiles
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.FileSystem
+import org.apache.spark.SparkContext
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lit, row_number, udf}
@@ -16,17 +13,25 @@ import org.apache.spark.sql.functions.{col, lit, row_number, udf}
 /**
   * Created by ramaharjan on 3/2/17.
   */
-class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame, endCycleDate : String) {
+class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame, endCycleDate : String, sc : SparkContext) {
 
   var eligDF = eligDataFrame
   var medDF = medDataFrame
   var rxDF = rxDataFrame
   MaraUtils.endOfCycleDate = endCycleDate
 
+  val dfsWorkingDir = FileSystem.get(new Configuration()).getWorkingDirectory
+  val mara1DatFile = "/mara3_9_0/MARA1.dat"
+  val mara2DatFile = "/mara3_9_0/MARA2.dat"
+  val maraLicenseFile = "/mara3_9_0/mara.lic"
+  sc.addFile(dfsWorkingDir+mara1DatFile)
+  sc.addFile(dfsWorkingDir+mara2DatFile)
+  sc.addFile(dfsWorkingDir+maraLicenseFile)
+
 
   def setSortDate = udf((date: String) => date )
 
-  def maraCalculator() : Unit = {
+  def maraCalculator() : DataFrame = {
 
     //todo groupfilter of elig
     eligDF = eligDF.select(MaraUtils.eligRetain.map(col): _*)
@@ -106,11 +111,7 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("groupWiseAmounts").as("groupWiseAmounts"),
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("totalPaidAmount").as("totalPaidAmount"),
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("totalAllowedAmount").as("totalAllowedAmount"))
-    combined.show(1000, false)
-//    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
 
-//    combined.map(row => {println(row)} )
-
-
+    combined
   }
 }
