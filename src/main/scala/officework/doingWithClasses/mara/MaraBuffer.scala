@@ -180,11 +180,23 @@ class MaraBuffer {
       var conditionDescription = conditionMapFromFile.getOrElse(conditionCode, "Unknown Code")
       conditionString += conditionCode+"^%~"+conditionDescription+"^%~"+conditionMap.get(conditionCode)+"^*~"
     }
-/*    import scala.collection.JavaConversions._
-    for (groupid <- groupIdSet) {
-      if (riskAA.isEmpty) riskAA = groupid + AdmissionAggregator.INLINE_SEPRATOR + paidAmount.get(groupid) + ";" + allowedAmount.get(groupid)
-      else riskAA = riskAA + AdmissionAggregator.ENTRY_SEPARATOR + groupid + AdmissionAggregator.INLINE_SEPRATOR + paidAmount.get(groupid) + ";" + allowedAmount.get(groupid)
-    }*/
+    var riskAA = ""
+    var totalPaidAmount = 0D
+    var totalAllowedAmount = 0D
+    val groupwisePaidAmounts = buffer.getMap(5).asInstanceOf[Map[String, Double]]
+    val groupwiseAllowedAmounts = buffer.getMap(6).asInstanceOf[Map[String, Double]]
+    for (groupWiseEntry <- groupwisePaidAmounts) {
+      if (riskAA.isEmpty){
+        riskAA = groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+        totalPaidAmount += groupWiseEntry._2
+        totalAllowedAmount += groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+      }
+      else{
+        riskAA = riskAA + "^*~" + groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+        totalPaidAmount += groupWiseEntry._2
+        totalAllowedAmount += groupwiseAllowedAmounts.get(groupWiseEntry._1).get
+      }
+    }
     mutable.HashMap(
       "mbr_dob" -> memberInfo.get(1),
       "mbr_relationship_code" -> memberInfo.get(2),
@@ -227,7 +239,10 @@ class MaraBuffer {
       "concurrentTotalScoreRaw" -> concurrentModelScore.getTotScore.toString,
       "concurrentERScoreRaw" -> concurrentModelScore.getErScore.toString,
       "concurrentOtherScoreRaw" -> concurrentModelScore.getOthScore.toString,
-      "conditionList" -> conditionString)
+      "conditionList" -> conditionString,
+    "groupWiseAmounts" -> riskAA,
+    "totalPaidAmount" -> totalPaidAmount.toString,
+    "totalAllowedAmount" -> totalAllowedAmount.toString)
   }
 
   private def addEligibleDateRanges(eligibleDateRanges: util.TreeMap[Long, Long], effectiveDate: Long, terminationDate: Long) {

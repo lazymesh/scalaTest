@@ -102,8 +102,11 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentTotalScoreRaw").as("concurrentTotalScoreRaw"),
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentERScoreRaw").as("concurrentERScoreRaw"),
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentOtherScoreRaw").as("concurrentOtherScoreRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("conditionList").as("conditionList"))
-    combined.show(false)
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("conditionList").as("conditionList"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("groupWiseAmounts").as("groupWiseAmounts"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("totalPaidAmount").as("totalPaidAmount"),
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("totalAllowedAmount").as("totalAllowedAmount"))
+    combined.show(1000, false)
 //    val modelProcessor = prepareModelProcessor(DateUtils.convertStringToLong("2016-12-31"))
 
 //    combined.map(row => {println(row)} )
