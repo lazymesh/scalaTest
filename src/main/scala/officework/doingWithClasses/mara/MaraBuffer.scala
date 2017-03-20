@@ -116,7 +116,11 @@ class MaraBuffer {
       if (currentCycleEndDate > effDate && currentCycleEndDate <= termDate) {
         buffer.update(1, true)
         addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
+        paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), 0D)
+        allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), 0D)
         buffer.update(2, eligibleDateRanges)
+        buffer.update(5, paidAmount)
+        buffer.update(6, allowedAmount)
       }
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagRx(0))) {
