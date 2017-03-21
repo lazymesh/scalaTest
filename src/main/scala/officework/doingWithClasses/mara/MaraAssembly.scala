@@ -1,19 +1,23 @@
 package main.scala.officework.doingWithClasses.mara
 
 
+import java.util
+
 import officework.doingWithClasses.mara.{MaraUDAF, MaraUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lit, row_number, udf}
+
+import scala.collection.immutable.HashMap.HashTrieMap
 
 
 /**
   * Created by ramaharjan on 3/2/17.
   */
-class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame, endCycleDate : String, sc : SparkContext) {
+class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame, endCycleDate : String, sc : SparkContext, sQLContext: SQLContext) {
 
   var eligDF = eligDataFrame
   var medDF = medDataFrame
@@ -66,51 +70,67 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
     val maraUdaf = new MaraUDAF(combined.schema)
     combined = combined.orderBy("inputTypeFlag").groupBy("dw_member_id").agg(
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_dob").as("mbr_dob"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_relationship_code").as("mbr_relationship_code"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_relationship_desc").as("mbr_relationship_desc"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_gender").as("mbr_gender"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("unblindMemberId").as("unblindMemberId"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("mbr_current_status").as("mbr_current_status"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("memberFullName").as("memberFullName"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_emp_group_id").as("ins_emp_group_id"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_emp_group_name").as("ins_emp_group_name"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_division_id").as("ins_division_id"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_carrier_id").as("ins_carrier_id"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_plan_id").as("ins_plan_id"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf16").as("udf16"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf17").as("udf17"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf18").as("udf18"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf19").as("udf19"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf20").as("udf20"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf21").as("udf21"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf22").as("udf22"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf23").as("udf23"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf24").as("udf24"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("udf25").as("udf25"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("ins_plan_type_code").as("ins_plan_type_code"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("integer_member_id").as("integer_member_id"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("exposureMonths").as("exposureMonths"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveInpatientRaw").as("prospectiveInpatientRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveOutpatientRaw").as("prospectiveOutpatientRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveMedicalRaw").as("prospectiveMedicalRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectivePharmacyRaw").as("prospectivePharmacyRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectivePhysicianRaw").as("prospectivePhysicianRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveTotalScoreRaw").as("prospectiveTotalScoreRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveERScoreRaw").as("prospectiveERScoreRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("prospectiveOtherScoreRaw").as("prospectiveOtherScoreRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentInpatientRaw").as("concurrentInpatientRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentOutpatientRaw").as("concurrentOutpatientRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentMedicalRaw").as("concurrentMedicalRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentPharmacyRaw").as("concurrentPharmacyRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentPhysicianRaw").as("concurrentPhysicianRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentTotalScoreRaw").as("concurrentTotalScoreRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentERScoreRaw").as("concurrentERScoreRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("concurrentOtherScoreRaw").as("concurrentOtherScoreRaw"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("conditionList").as("conditionList"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("groupWiseAmounts").as("groupWiseAmounts"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("totalPaidAmount").as("totalPaidAmount"),
-      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*)("totalAllowedAmount").as("totalAllowedAmount"))
+      maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*).as("maraOutput"))
+
+    val maraSchema = combined.schema
+
+    val temp = combined
+    var temp2 = temp.rdd.map(row => {
+      val list = Array.empty[String]
+      list ++ row(0).toString
+      val maraOutMap = row(1).asInstanceOf[Map[String, String]]
+//      if(!maraOutMap.keySet.contains("emptyscore")) {
+        list ++ maraOutMap.getOrElse("mbr_dob", "null")
+        list ++ maraOutMap.getOrElse("mbr_relationship_code", "null")
+        list ++ maraOutMap.getOrElse("mbr_relationship_desc", "null")
+        list ++ maraOutMap.getOrElse("mbr_gender", "null")
+        list ++ maraOutMap.getOrElse("unblindMemberId", "null")
+        list ++ maraOutMap.getOrElse("mbr_current_status", "null")
+        list ++ maraOutMap.getOrElse("memberFullName", "null")
+        list ++ maraOutMap.getOrElse("ins_emp_group_id", "null")
+        list ++ maraOutMap.getOrElse("ins_emp_group_name", "null")
+        list ++ maraOutMap.getOrElse("ins_division_id", "null")
+        list ++ maraOutMap.getOrElse("ins_carrier_id", "null")
+        list ++ maraOutMap.getOrElse("ins_plan_id", "null")
+        list ++ maraOutMap.getOrElse("udf16", "null")
+        list ++ maraOutMap.getOrElse("udf17", "null")
+        list ++ maraOutMap.getOrElse("udf18", "null")
+        list ++ maraOutMap.getOrElse("udf19", "null")
+        list ++ maraOutMap.getOrElse("udf20", "null")
+        list ++ maraOutMap.getOrElse("udf21", "null")
+        list ++ maraOutMap.getOrElse("udf22", "null")
+        list ++ maraOutMap.getOrElse("udf23", "null")
+        list ++ maraOutMap.getOrElse("udf24", "null")
+        list ++ maraOutMap.getOrElse("udf25", "null")
+        list ++ maraOutMap.getOrElse("ins_plan_type_code", "null")
+        list ++ maraOutMap.getOrElse("integer_member_id", "null")
+        list ++ maraOutMap.getOrElse("exposureMonths", "null")
+        list ++ maraOutMap.getOrElse("prospectiveInpatientRaw", "null")
+        list ++ maraOutMap.getOrElse("prospectiveOutpatientRaw", "null")
+        list ++ maraOutMap.getOrElse("prospectiveMedicalRaw", "null")
+        list ++ maraOutMap.getOrElse("prospectivePharmacyRaw", "null")
+        list ++ maraOutMap.getOrElse("prospectivePhysicianRaw", "null")
+        list ++ maraOutMap.getOrElse("prospectiveTotalScoreRaw", "null")
+        list ++ maraOutMap.getOrElse("prospectiveERScoreRaw", "null")
+        list ++ maraOutMap.getOrElse("prospectiveOtherScoreRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentInpatientRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentOutpatientRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentMedicalRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentPharmacyRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentPhysicianRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentTotalScoreRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentERScoreRaw", "null")
+        list ++ maraOutMap.getOrElse("concurrentOtherScoreRaw", "null")
+        list ++ maraOutMap.getOrElse("conditionList", "null")
+        list ++ maraOutMap.getOrElse("groupWiseAmounts", "null")
+        list ++ maraOutMap.getOrElse("totalPaidAmount", "null")
+        list ++ maraOutMap.getOrElse("totalAllowedAmount", "null")
+//      }
+    list
+    })
+    Seq(temp2).foreach(println)
+    import sQLContext.implicits._
+    Seq((temp2.toLocalIterator).toList).toDF(MaraUtils.maraRawOutput:_*).show(50)
 
     combined
   }

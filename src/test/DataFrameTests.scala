@@ -5,6 +5,8 @@ import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
 
+import scala.collection.mutable
+
 /**
   * Created by ramaharjan on 2/2/17.
   */
@@ -115,5 +117,16 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
     diagCodes.show
 
     sparkContext.stop()
+  }
+
+  test("hashmap dataframe to individual column dataframe"){
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+    import sqlContext.implicits._
+    val hashMap1 = mutable.HashMap("cars" -> 101, "jeep" -> 3, "honda" -> 5)
+    val hashMap2 = mutable.HashMap("cars" -> 103, "jeep" -> 4, "honda" -> 4)
+    val hashMap3 = mutable.HashMap("cars" -> 120, "jeep" -> 2, "honda" -> 3)
+    val hashMap4 = mutable.HashMap("cars" -> 20, "jeep" -> 1, "honda" -> 2)
+    val dataframe = Seq((hashMap1, hashMap2, hashMap3, hashMap4)).toDF("maps").show(false)
   }
 }

@@ -36,4 +36,9 @@ class SparkParallelismTests extends FunSuite with BeforeAndAfterEach {
     }
   }
 
+  test("simple sequence test"){
+    val sequence = Seq((1,2,3))
+    println(sequence(0)._1)
+  }
+
 }

@@ -63,6 +63,15 @@ object MaraUtils {
 
   val finalOrderingColumns = commonColumns ++ eligOnlyColumns ++ medOnlyColumns ++ commonMedRxColumns ++ rxOnlyColumns ++ inputTypeFlagColumn ++ sortDate
 
+  val maraRawOutput = Vector("mbr_dob", "mbr_relationship_code", "mbr_relationship_desc", "mbr_gender", "unblindMemberId",
+    "mbr_current_status", "memberFullName", "ins_emp_group_id", "ins_emp_group_name", "ins_division_id", "ins_carrier_id",
+    "ins_plan_id", "udf16", "udf17", "udf18", "udf19", "udf20", "udf21", "udf22", "udf23", "udf24", "udf25", "ins_plan_type_code",
+    "integer_member_id", "exposureMonths", "prospectiveInpatientRaw", "prospectiveOutpatientRaw", "prospectiveMedicalRaw",
+    "prospectivePharmacyRaw", "prospectivePhysicianRaw", "prospectiveTotalScoreRaw", "prospectiveERScoreRaw", "prospectiveOtherScoreRaw",
+    "concurrentInpatientRaw", "concurrentOutpatientRaw", "concurrentMedicalRaw", "concurrentPharmacyRaw", "concurrentPhysicianRaw",
+    "concurrentTotalScoreRaw", "concurrentERScoreRaw", "concurrentOtherScoreRaw", "conditionList", "groupWiseAmounts", "totalPaidAmount",
+    "totalAllowedAmount")
+
   def getMemberFullName(input: Row): String = {
     val firstName = input.getString(MaraUtils.finalOrderingColumns.indexOf("mbr_first_name"))
     val middleName = input.getString(MaraUtils.finalOrderingColumns.indexOf("mbr_middle_name"))
