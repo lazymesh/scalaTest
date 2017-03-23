@@ -16,11 +16,11 @@ import scala.collection.mutable
 /**
   * Created by ramaharjan on 3/13/17.
   */
-class MaraBuffer {
+class MaraBuffer(endCycleDate : String) {
 
   val conditionMapFromFile = MaraUtils.getConditionMap
 
-  var currentCycleEndDate = DateUtils.convertStringToLong(MaraUtils.endOfCycleDate)
+  var currentCycleEndDate = DateUtils.convertStringToLong(endCycleDate)
   var dataPeriodStartDate = new DateTime(currentCycleEndDate).minusMonths(12).getMillis
 
   val dataPeriodMonthYears = new util.ArrayList[String](12)
@@ -159,7 +159,7 @@ class MaraBuffer {
     }
   }
 
-  def calculateMaraScores(buffer : Row, modelProcessor: ModelProcessor): mutable.HashMap[String, String] = {
+  def calculateMaraScores(buffer : Row): mutable.HashMap[String, String] = {
 //    val scoreHashMap : mutable.HashMap[String, String] = mutable.HashMap.empty[String, String]
     val member = new InputMember
     val memberInfo = buffer.getList(0)
@@ -171,7 +171,7 @@ class MaraBuffer {
     member.setExposureMonths(exposureMonths)
     member.setInputMedClaim(MaraUtils.getMaraMedClaimObject(buffer.getList(4).toArray()))
     member.setInputRxClaim(MaraUtils.getMaraRxClaimObject(buffer.getList(3).toArray()))
-    val maraOutputScores = calculateRiskScores(member, modelProcessor)
+    val maraOutputScores = calculateRiskScores(member, MaraUtils.modelProcessor)
 
     val modelDataMap = maraOutputScores.getOutputModelDataMap
     val prospectiveModelScore = modelDataMap.get("CXPROLAG0").getOutputModelScore
@@ -313,9 +313,9 @@ class MaraBuffer {
   }
 
   def tryRecalculatingRiskScoreForInvalidMembers(inputMember: InputMember, modelProcessor: ModelProcessor) = {
-    val age = Years.yearsBetween(new DateTime(inputMember.getDob.getTime), new DateTime(MaraUtils.endOfCycleDate)).getYears
-    System.out.println("Invalid Age " + age + " CycleEndDate " + new Date(MaraUtils.endOfCycleDate) + " Member Id " + inputMember.getMemberId)
-    val cycleEndDate = new DateTime(MaraUtils.endOfCycleDate)
+    val age = Years.yearsBetween(new DateTime(inputMember.getDob.getTime), new DateTime(endCycleDate)).getYears
+    System.out.println("Invalid Age " + age + " CycleEndDate " + new Date(endCycleDate) + " Member Id " + inputMember.getMemberId)
+    val cycleEndDate = new DateTime(endCycleDate)
     val newDob = cycleEndDate.minusYears(35).getMillis
     inputMember.setDob(new Date(newDob))
     var outputMaraResultSet : OutputMaraResultSet = new OutputMaraResultSet

@@ -4,14 +4,18 @@ package main.scala.officework.doingWithClasses.mara
 import java.util
 
 import officework.doingWithClasses.mara.{MaraUDAF, MaraUtils}
+import org.apache.avro.generic.GenericData.StringType
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lit, row_number, udf}
+import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
 
 import scala.collection.immutable.HashMap.HashTrieMap
+import scala.collection.mutable
 
 
 /**
@@ -22,7 +26,7 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
   var eligDF = eligDataFrame
   var medDF = medDataFrame
   var rxDF = rxDataFrame
-  MaraUtils.endOfCycleDate = endCycleDate
+  val eocDate = endCycleDate
 
   val dfsWorkingDir = FileSystem.get(new Configuration()).getWorkingDirectory
   val mara1DatFile = "/mara3_9_0/MARA1.dat"
@@ -68,70 +72,29 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
     rxDF = rxDF.select(MaraUtils.finalOrderingColumns.map(col):_*)
 
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
-    val maraUdaf = new MaraUDAF(combined.schema)
+    val maraUdaf = new MaraUDAF(combined.schema, eocDate)
     combined = combined.orderBy("inputTypeFlag").groupBy("dw_member_id").agg(
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*).as("maraOutput"))
 
-    val maraSchema = combined.schema
+    val maraSchema = StructType(MaraUtils.maraRawOutput.map(field => StructField(field, DataTypes.StringType, true)))
 
-    val temp = combined
-    var temp2 = temp.rdd.map(row => {
-      val list = Array.empty[String]
-      list ++ row(0).toString
+    var maraRddRow = combined.rdd.map(row => {
+      val list = mutable.MutableList[String]()
+      val memberId = row(0).toString
       val maraOutMap = row(1).asInstanceOf[Map[String, String]]
-//      if(!maraOutMap.keySet.contains("emptyscore")) {
-        list ++ maraOutMap.getOrElse("mbr_dob", "null")
-        list ++ maraOutMap.getOrElse("mbr_relationship_code", "null")
-        list ++ maraOutMap.getOrElse("mbr_relationship_desc", "null")
-        list ++ maraOutMap.getOrElse("mbr_gender", "null")
-        list ++ maraOutMap.getOrElse("unblindMemberId", "null")
-        list ++ maraOutMap.getOrElse("mbr_current_status", "null")
-        list ++ maraOutMap.getOrElse("memberFullName", "null")
-        list ++ maraOutMap.getOrElse("ins_emp_group_id", "null")
-        list ++ maraOutMap.getOrElse("ins_emp_group_name", "null")
-        list ++ maraOutMap.getOrElse("ins_division_id", "null")
-        list ++ maraOutMap.getOrElse("ins_carrier_id", "null")
-        list ++ maraOutMap.getOrElse("ins_plan_id", "null")
-        list ++ maraOutMap.getOrElse("udf16", "null")
-        list ++ maraOutMap.getOrElse("udf17", "null")
-        list ++ maraOutMap.getOrElse("udf18", "null")
-        list ++ maraOutMap.getOrElse("udf19", "null")
-        list ++ maraOutMap.getOrElse("udf20", "null")
-        list ++ maraOutMap.getOrElse("udf21", "null")
-        list ++ maraOutMap.getOrElse("udf22", "null")
-        list ++ maraOutMap.getOrElse("udf23", "null")
-        list ++ maraOutMap.getOrElse("udf24", "null")
-        list ++ maraOutMap.getOrElse("udf25", "null")
-        list ++ maraOutMap.getOrElse("ins_plan_type_code", "null")
-        list ++ maraOutMap.getOrElse("integer_member_id", "null")
-        list ++ maraOutMap.getOrElse("exposureMonths", "null")
-        list ++ maraOutMap.getOrElse("prospectiveInpatientRaw", "null")
-        list ++ maraOutMap.getOrElse("prospectiveOutpatientRaw", "null")
-        list ++ maraOutMap.getOrElse("prospectiveMedicalRaw", "null")
-        list ++ maraOutMap.getOrElse("prospectivePharmacyRaw", "null")
-        list ++ maraOutMap.getOrElse("prospectivePhysicianRaw", "null")
-        list ++ maraOutMap.getOrElse("prospectiveTotalScoreRaw", "null")
-        list ++ maraOutMap.getOrElse("prospectiveERScoreRaw", "null")
-        list ++ maraOutMap.getOrElse("prospectiveOtherScoreRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentInpatientRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentOutpatientRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentMedicalRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentPharmacyRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentPhysicianRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentTotalScoreRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentERScoreRaw", "null")
-        list ++ maraOutMap.getOrElse("concurrentOtherScoreRaw", "null")
-        list ++ maraOutMap.getOrElse("conditionList", "null")
-        list ++ maraOutMap.getOrElse("groupWiseAmounts", "null")
-        list ++ maraOutMap.getOrElse("totalPaidAmount", "null")
-        list ++ maraOutMap.getOrElse("totalAllowedAmount", "null")
-//      }
-    list
+      for(field <- MaraUtils.maraRawOutput){
+        if(field.equalsIgnoreCase("dw_member_id")){
+          list += memberId
+        }
+        else{
+          list += maraOutMap.getOrElse(field, field)
+        }
+      }
+      Row.fromSeq(list)
     })
-    Seq(temp2).foreach(println)
-    import sQLContext.implicits._
-    Seq((temp2.toLocalIterator).toList).toDF(MaraUtils.maraRawOutput:_*).show(50)
+    maraRddRow = maraRddRow.filter(!_.get(1).toString().equalsIgnoreCase("mbr_dob"))
+    val maraRawDF = sQLContext.createDataFrame(maraRddRow, maraSchema)
 
-    combined
+    maraRawDF
   }
 }

@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util
 import java.util.Date
 
+import main.scala.officework.doingWithClasses.ClientCfgParameters
 import main.scala.officework.doingWithObjects.DateUtils
 import milliman.mara.exception.{MARAClassLoaderException, MARALicenseException}
 import milliman.mara.model._
@@ -18,9 +19,9 @@ import scala.io.Source
   */
 object MaraUtils {
 
-  var modelProcessor : ModelProcessor = _
+  val clientConfig = new ClientCfgParameters("/client_config.properties")
+  var modelProcessor : ModelProcessor = prepareModelProcessor(DateUtils.convertStringToLong(clientConfig.getEOC()))
 
-  var endOfCycleDate : String = _
   val FUTURE_DATE = DateUtils.convertStringToLong("2099-12-31")
 
   val commonColumns = Vector("dw_member_id", "ins_emp_group_id", "ins_emp_group_name", "ins_division_id", "ins_division_name", "ins_carrier_id", "ins_carrier_name", "ins_plan_id", "ins_plan_type_code", "udf16", "udf17", "udf18", "udf19", "udf20", "udf21", "udf22", "udf23", "udf24", "udf25")
@@ -63,7 +64,7 @@ object MaraUtils {
 
   val finalOrderingColumns = commonColumns ++ eligOnlyColumns ++ medOnlyColumns ++ commonMedRxColumns ++ rxOnlyColumns ++ inputTypeFlagColumn ++ sortDate
 
-  val maraRawOutput = Vector("mbr_dob", "mbr_relationship_code", "mbr_relationship_desc", "mbr_gender", "unblindMemberId",
+  val maraRawOutput = Vector("dw_member_id", "mbr_dob", "mbr_relationship_code", "mbr_relationship_desc", "mbr_gender", "unblindMemberId",
     "mbr_current_status", "memberFullName", "ins_emp_group_id", "ins_emp_group_name", "ins_division_id", "ins_carrier_id",
     "ins_plan_id", "udf16", "udf17", "udf18", "udf19", "udf20", "udf21", "udf22", "udf23", "udf24", "udf25", "ins_plan_type_code",
     "integer_member_id", "exposureMonths", "prospectiveInpatientRaw", "prospectiveOutpatientRaw", "prospectiveMedicalRaw",

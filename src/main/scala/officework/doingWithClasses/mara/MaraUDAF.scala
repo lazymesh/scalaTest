@@ -12,8 +12,8 @@ import scala.collection.mutable
 /**
   * Created by ramaharjan on 3/9/17.
   */
-class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunction {
-  MaraUtils.modelProcessor = MaraUtils.prepareModelProcessor(DateUtils.convertStringToLong(MaraUtils.endOfCycleDate))
+class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends UserDefinedAggregateFunction {
+  val eocDate = endCycleDate
   var sourceSchema : StructType = _
   var bufferedSchema : StructType = _
   var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType)
@@ -62,7 +62,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     * This method will re-initialize the variables and will be called only once for each group
     */
   override def initialize(buffer : MutableAggregationBuffer) : Unit = {
-    maraBuffer = new MaraBuffer
+    maraBuffer = new MaraBuffer(eocDate)
     buffer(0) = new util.ArrayList[String]
     buffer(1) = false
     buffer(2) = new mutable.HashMap[Long, Long]
@@ -99,7 +99,7 @@ class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunct
     */
   override def evaluate(buffer : Row) : Any = {
     if(buffer.getBoolean(1)) {
-      maraBuffer.calculateMaraScores(buffer, MaraUtils.modelProcessor)
+      maraBuffer.calculateMaraScores(buffer)
     }
     else
       mutable.HashMap("emptyscore" -> "")

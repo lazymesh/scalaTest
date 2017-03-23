@@ -1,11 +1,12 @@
 package test
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
 
-import scala.collection.mutable
+import scala.collection.immutable.HashMap
+
 
 /**
   * Created by ramaharjan on 2/2/17.
@@ -109,7 +110,7 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
       ("2", "8", "1", "8", "2", "6", "6", "8", "2"),
       ("3", "9", "9", "1", "3", "9", "9", "1", "3"))
       .toDF("svc_diag_1_code", "svc_diag_2_code", "svc_diag_3_code", "svc_diag_4_code", "svc_diag_5_code",
-        "svc_diag_6_code", "svc_diag_7_code", "svc_diag_8_code", "svc_diag_9_code")
+    "svc_diag_6_code", "svc_diag_7_code", "svc_diag_8_code", "svc_diag_9_code")
 
     val window = Window.partitionBy($"svc_diag_1_code").orderBy($"svc_diag_2_code".desc, $"svc_diag_3_code".desc)
     diagCodes = diagCodes.withColumn("rn", row_number.over(window)).where($"rn" === 1).drop("rn")
@@ -123,10 +124,25 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     import sqlContext.implicits._
-    val hashMap1 = mutable.HashMap("cars" -> 101, "jeep" -> 3, "honda" -> 5)
-    val hashMap2 = mutable.HashMap("cars" -> 103, "jeep" -> 4, "honda" -> 4)
-    val hashMap3 = mutable.HashMap("cars" -> 120, "jeep" -> 2, "honda" -> 3)
-    val hashMap4 = mutable.HashMap("cars" -> 20, "jeep" -> 1, "honda" -> 2)
-    val dataframe = Seq((hashMap1, hashMap2, hashMap3, hashMap4)).toDF("maps").show(false)
+
+    val hashMap1 = Seq(List(HashMap("cars" -> 101, "jeep" -> 3, "honda" -> 5)),
+        List(HashMap("cars" -> 103, "jeep" -> 4, "honda" -> 4)),
+        List(HashMap("cars" -> 120, "jeep" -> 2, "honda" -> 3)),
+        List(HashMap("cars" -> 20, "jeep" -> 1, "honda" -> 2)))
+
+    val df = hashMap1.toDF("maps")
+df.show(false)
+    val rddDF = df.rdd.map(row => {
+      val maraOutMap = row.getList(0)
+      println("OOOOOOOOOOOOO "+maraOutMap)
+      /*import scala.collection.JavaConversions._
+      for(k <- maraOutMap) {
+        println("key "+k )
+      }*/
+      //      println(row(1))
+      (row(0))
+    })
+
+    rddDF.foreach(println)
   }
 }
