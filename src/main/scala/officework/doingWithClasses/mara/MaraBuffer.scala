@@ -3,9 +3,10 @@ package officework.doingWithClasses.mara
 import java.util
 import java.util.Date
 
+import main.scala.officework.doingWithClasses.DateUtility
 import main.scala.officework.doingWithObjects.DateUtils
 import milliman.mara.exception.{MARAEngineProcessException, MARAInvalidMemberException}
-import milliman.mara.model._
+import milliman.mara.model.{InputMember, ModelProcessor, OutputMaraResultSet}
 import officework.doingWithClasses.{StringUtility, SummableMap}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.MutableAggregationBuffer
@@ -16,15 +17,12 @@ import scala.collection.mutable
 /**
   * Created by ramaharjan on 3/13/17.
   */
-class MaraBuffer(endCycleDate : String) {
+class MaraBuffer() extends Serializable {
 
   val conditionMapFromFile = MaraUtils.getConditionMap
 
-  var currentCycleEndDate = DateUtils.convertStringToLong(endCycleDate)
-  var dataPeriodStartDate = new DateTime(currentCycleEndDate).minusMonths(12).getMillis
-
   val dataPeriodMonthYears = new util.ArrayList[String](12)
-  val eocDateTime = new DateTime(currentCycleEndDate)
+  val eocDateTime = new DateTime(MaraUtils.clientConfigCycleEndDate)
   dataPeriodMonthYears.clear()
   for(i <- 1 to 12){
     val newDate = eocDateTime.minusMonths(i)
@@ -37,6 +35,14 @@ class MaraBuffer(endCycleDate : String) {
 
   val paidAmount : SummableMap[String, Double] = new SummableMap[String, Double]
   val allowedAmount : SummableMap[String, Double] = new SummableMap[String, Double]
+
+  def initializeOrClear : Unit = {
+    eligibleDateRanges.clear()
+    inputMedClaimList.clear()
+    inputRxClaimList.clear()
+    paidAmount.clear()
+    allowedAmount.clear()
+  }
 
   def populate(buffer : MutableAggregationBuffer, input : Row): Unit = {
     val inputTypeFlag = input.getInt(MaraUtils.finalOrderingColumns.indexOf("inputTypeFlag"))
@@ -104,8 +110,8 @@ class MaraBuffer(endCycleDate : String) {
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagElig(0))) {
       //inputFlagType --> 2
-      var effDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
-      var termDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_term_date")))
+      var effDate = DateUtility.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
+      var termDate = DateUtility.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_term_date")))
 
       /*      if (eligibleDate.equalsIgnoreCase("increase")) {
         effDate = DateUtils.getIncreaseEligibleFromDate(effDate).getMillis
@@ -113,7 +119,7 @@ class MaraBuffer(endCycleDate : String) {
       }
       else termDate = DateUtils.getEligibleToDate(termDate).getMillis
       val currentCycleEndDate = new DateTime(endOfCycleDate).plusMonths(decrease_month).dayOfMonth.withMaximumValue.getMillis*/
-      if (currentCycleEndDate > effDate && currentCycleEndDate <= termDate) {
+      if (MaraUtils.clientConfigCycleEndDate > effDate && MaraUtils.clientConfigCycleEndDate <= termDate) {
         buffer.update(1, true)
         addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
         paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), 0D)
@@ -125,13 +131,17 @@ class MaraBuffer(endCycleDate : String) {
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagRx(0))) {
       //inputFlagType --> 1
-      val serviceDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date")))
+      val filledDate = if(StringUtility.isNotNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date"))))
+        input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date")) else "2099-12-31"
+      //      val serviceDate = DateUtility.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("rx_svc_filled_date")))
       val paid_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")))) 0D
-        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")).toDouble
+      else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")).toDouble
       val allowed_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")))) 0D
-        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
+      else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
 
-      if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate)) {
+      val memberId = input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id"))
+      println(memberId+DateUtility.convertLongToString(MaraUtils.dataPeriodStartDate)+"::::::::::PHARMACY "+filledDate+":::::::: "+DateUtility.convertLongToString(MaraUtils.clientConfigCycleEndDate))
+      if (MaraUtils.isClaimWithinTwelveMonths(DateUtility.convertStringToLong(filledDate), MaraUtils.dataPeriodStartDate, MaraUtils.clientConfigCycleEndDate)) {
         inputRxClaimList.add(MaraUtils.getInputRxClaim(input))
         paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), paid_amount)
         allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), allowed_amount)
@@ -142,13 +152,17 @@ class MaraBuffer(endCycleDate : String) {
     }
     else if (inputTypeFlag == (MaraUtils.inputTypeFlagMed(0))) {
       //inputFlagType --> 0
-      val serviceDate = DateUtils.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date")))
+      var serviceFromDate = if(StringUtility.isNotNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date"))))
+        input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date")) else "2099-12-31"
+      //      val serviceDate = DateUtility.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date")))
       val paid_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")))) 0D
-        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")).toDouble
+      else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")).toDouble
       val allowed_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")))) 0D
-        else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
+      else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
 
-      if (MaraUtils.isClaimWithinTwelveMonths(serviceDate, dataPeriodStartDate, currentCycleEndDate)) {
+      val memberId = input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id"))
+      println(memberId+DateUtility.convertLongToString(MaraUtils.dataPeriodStartDate)+"::::::::MEDICAL "+serviceFromDate+"::::::::: "+DateUtility.convertLongToString(MaraUtils.clientConfigCycleEndDate))
+      if (MaraUtils.isClaimWithinTwelveMonths(DateUtility.convertStringToLong(serviceFromDate), MaraUtils.dataPeriodStartDate, MaraUtils.clientConfigCycleEndDate)) {
         inputMedClaimList.add(MaraUtils.getInputMedClaim(input))
         paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), paid_amount)
         allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), allowed_amount)
@@ -160,19 +174,18 @@ class MaraBuffer(endCycleDate : String) {
   }
 
   def calculateMaraScores(buffer : Row): mutable.HashMap[String, String] = {
-//    val scoreHashMap : mutable.HashMap[String, String] = mutable.HashMap.empty[String, String]
+    //    val scoreHashMap : mutable.HashMap[String, String] = mutable.HashMap.empty[String, String]
     val member = new InputMember
     val memberInfo = buffer.getList(0)
     val exposureMonths = calculateExposureMonths(buffer.getMap(2).asInstanceOf[Map[Long, Long]])
     member.setMemberId(memberInfo.get(0))
-    member.setDob(new Date(DateUtils.convertStringToLong(memberInfo.get(1))))
+    member.setDob(new Date(DateUtility.convertStringToLong(memberInfo.get(1))))
     member.setDependentStatus(MaraUtils.getDependentStatus(memberInfo.get(2)))
     member.setGender(MaraUtils.getGender(memberInfo.get(4)))
     member.setExposureMonths(exposureMonths)
     member.setInputMedClaim(MaraUtils.getMaraMedClaimObject(buffer.getList(4).toArray()))
     member.setInputRxClaim(MaraUtils.getMaraRxClaimObject(buffer.getList(3).toArray()))
     val maraOutputScores = calculateRiskScores(member, MaraUtils.modelProcessor)
-
     val modelDataMap = maraOutputScores.getOutputModelDataMap
     val prospectiveModelScore = modelDataMap.get("CXPROLAG0").getOutputModelScore
     val concurrentModelScore = modelDataMap.get("CXCONLAG0").getOutputModelScore
@@ -244,23 +257,23 @@ class MaraBuffer(endCycleDate : String) {
       "concurrentERScoreRaw" -> concurrentModelScore.getErScore.toString,
       "concurrentOtherScoreRaw" -> concurrentModelScore.getOthScore.toString,
       "conditionList" -> conditionString,
-    "groupWiseAmounts" -> riskAA,
-    "totalPaidAmount" -> totalPaidAmount.toString,
-    "totalAllowedAmount" -> totalAllowedAmount.toString)
+      "groupWiseAmounts" -> riskAA,
+      "totalPaidAmount" -> totalPaidAmount.toString,
+      "totalAllowedAmount" -> totalAllowedAmount.toString)
   }
 
   private def addEligibleDateRanges(eligibleDateRanges: util.TreeMap[Long, Long], effectiveDate: Long, terminationDate: Long) {
     var effDate = effectiveDate
     var termDate = terminationDate
     if (effDate < termDate) {
-      if (termDate == MaraUtils.FUTURE_DATE) termDate = currentCycleEndDate
-      if (termDate > currentCycleEndDate) termDate = currentCycleEndDate
-      if (effDate < dataPeriodStartDate) effDate = dataPeriodStartDate
+      if (termDate == MaraUtils.FUTURE_DATE) termDate = MaraUtils.clientConfigCycleEndDate
+      if (termDate > MaraUtils.clientConfigCycleEndDate) termDate = MaraUtils.clientConfigCycleEndDate
+      if (effDate < MaraUtils.dataPeriodStartDate) effDate = MaraUtils.dataPeriodStartDate
 
-      if (!eligibleDateRanges.isEmpty && eligibleDateRanges.containsKey(effectiveDate) && (eligibleDateRanges.get(effectiveDate) > terminationDate))
-        eligibleDateRanges.put(effectiveDate, eligibleDateRanges.get(effectiveDate))
+      if (!eligibleDateRanges.isEmpty && eligibleDateRanges.containsKey(effDate) && (eligibleDateRanges.get(effDate) > termDate))
+        eligibleDateRanges.put(effDate, eligibleDateRanges.get(effDate))
       else
-        eligibleDateRanges.put(effectiveDate, terminationDate)
+        eligibleDateRanges.put(effDate, termDate)
     }
   }
 
@@ -271,7 +284,8 @@ class MaraBuffer(endCycleDate : String) {
       val fromDate = entry._1
       val toDate = entry._2
       var endDate = new DateTime(toDate)
-      val months = Months.monthsBetween(new DateTime(fromDate), new DateTime(toDate)).getMonths
+      val months = DateUtility.getDateDiff(fromDate, toDate, 1)
+      println(months+" EEEEEEEEEEEEEEEEEEEE "+DateUtility.convertLongToString(fromDate)+" "+DateUtility.convertLongToString(toDate))
       for(i <- 1 to months) {
         eligibleMonths.add(endDate.getMonthOfYear + "-" + endDate.getYear)
         endDate = endDate.minusMonths(1)
@@ -279,8 +293,12 @@ class MaraBuffer(endCycleDate : String) {
     }
     import scala.collection.JavaConverters._
     for(eligibleMonthYear <- eligibleMonths.asScala) {
-      if (dataPeriodMonthYears.contains(eligibleMonthYear)) exposureMonths += 1
+      println("ooooooooooo "+eligibleMonthYear)
+      if (dataPeriodMonthYears.contains(eligibleMonthYear)){
+        println("iiiiiiiiiii "+eligibleMonthYear)
+        exposureMonths += 1}
     }
+    println(exposureMonths)
     exposureMonths
   }
 
@@ -313,9 +331,9 @@ class MaraBuffer(endCycleDate : String) {
   }
 
   def tryRecalculatingRiskScoreForInvalidMembers(inputMember: InputMember, modelProcessor: ModelProcessor) = {
-    val age = Years.yearsBetween(new DateTime(inputMember.getDob.getTime), new DateTime(endCycleDate)).getYears
-    System.out.println("Invalid Age " + age + " CycleEndDate " + new Date(endCycleDate) + " Member Id " + inputMember.getMemberId)
-    val cycleEndDate = new DateTime(endCycleDate)
+    val age = Years.yearsBetween(new DateTime(inputMember.getDob.getTime), new DateTime(MaraUtils.clientConfigCycleEndDate)).getYears
+    System.out.println("Invalid Age " + age + " CycleEndDate " + new Date(MaraUtils.clientConfigCycleEndDate) + " Member Id " + inputMember.getMemberId)
+    val cycleEndDate = new DateTime(MaraUtils.clientConfigCycleEndDate)
     val newDob = cycleEndDate.minusYears(35).getMillis
     inputMember.setDob(new Date(newDob))
     var outputMaraResultSet : OutputMaraResultSet = new OutputMaraResultSet

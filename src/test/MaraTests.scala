@@ -21,7 +21,7 @@ class MaraTests extends FunSuite with BeforeAndAfterEach {
   override def beforeEach() {
     sparkSession = SparkSession.builder().appName("udf testings")
       .master("local")
-      .config("", "")
+      .config("spark.executor.instances", "3")
       .getOrCreate()
   }
 

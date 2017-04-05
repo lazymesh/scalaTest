@@ -40,6 +40,6 @@ class SummableMap[K, V] extends mutable.HashMap[K, V] {
   }
 
   override def put (key: K, value: V): Option[V] = {
-     put(key, value, ";")
+    put(key, value, ";")
   }
 }

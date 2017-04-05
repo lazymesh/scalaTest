@@ -38,7 +38,7 @@ class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends Us
   val bufferStructField6 : StructField = DataTypes.createStructField("groupWisePaidAllowedAmount", DataTypes.createMapType(DataTypes.StringType, DataTypes.DoubleType, true), true)
   bufferFields.add(bufferStructField6)
   bufferedSchema = DataTypes.createStructType(bufferFields)
-  var maraBuffer : MaraBuffer = _
+  val maraBuffer : MaraBuffer = new MaraBuffer(eocDate)
 
   // This is the input fields for your aggregate function.
   override def  inputSchema() : StructType =  sourceSchema
@@ -62,7 +62,7 @@ class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends Us
     * This method will re-initialize the variables and will be called only once for each group
     */
   override def initialize(buffer : MutableAggregationBuffer) : Unit = {
-    maraBuffer = new MaraBuffer(eocDate)
+    maraBuffer.initializeOrClear
     buffer(0) = new util.ArrayList[String]
     buffer(1) = false
     buffer(2) = new mutable.HashMap[Long, Long]
@@ -76,6 +76,7 @@ class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends Us
     * This method is used to iterate between input rows
     */
   override def update(buffer : MutableAggregationBuffer, input : Row) : Unit = {
+    println("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU "+input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
     maraBuffer.populate(buffer, input)
   }
 

@@ -1,6 +1,6 @@
 package test
 
-import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.sql.{Column, Row, SparkSession}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.scalatest.{BeforeAndAfterEach, FunSuite}
@@ -25,6 +25,28 @@ class DataFrameTests extends FunSuite with BeforeAndAfterEach {
   override def afterEach() {
     sparkSession.stop()
 
+  }
+
+  test("select only matching rows"){
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+    import sqlContext.implicits._
+    val diagdf = Seq(("239", "abrcd"), ("239.1", "abcd"), ("239.2", "abcd"), ("23.9", "abcd3"), ("239.5", "abcd")).toDF("diag1", "diagDesc")
+
+    diagdf.show
+
+    val selectedDf = diagdf.where(diagdf("diag1") === "239" || diagdf("diag1") === "239.1")
+    selectedDf.show
+
+    val selectedDf2 = diagdf.where(diagdf("diagDesc") === "abcd")
+    selectedDf2.show
+
+    //using a set
+    val checkSet : Set[String] = Set("239", "239.1", "23.9")
+    val selectedDf3 = diagdf.where(diagdf("").contains(checkSet))
+    selectedDf3.show()
+
+    sparkContext.stop
   }
 
   test("updating a table using another tables value after joining "){
