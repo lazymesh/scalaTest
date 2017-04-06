@@ -76,7 +76,7 @@ object MaraUtils extends Serializable{
     "prospectivePharmacyRaw", "prospectivePhysicianRaw", "prospectiveTotalScoreRaw", "prospectiveERScoreRaw", "prospectiveOtherScoreRaw",
     "concurrentInpatientRaw", "concurrentOutpatientRaw", "concurrentMedicalRaw", "concurrentPharmacyRaw", "concurrentPhysicianRaw",
     "concurrentTotalScoreRaw", "concurrentERScoreRaw", "concurrentOtherScoreRaw", "conditionList", "groupWiseAmounts", "totalPaidAmount",
-    "totalAllowedAmount")
+    "totalAllowedAmount", "age")
 
   def getModelProcessor() : ModelProcessor = {
     modelProcessor
@@ -108,7 +108,7 @@ object MaraUtils extends Serializable{
     val cptCode = claimLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_cpt_code"))
     val hcpcsCode = claimLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_hcpcs_code"))
     val icdCode = claimLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_icd_proc_1_code"))
-    val procedureCode = if(!cptCode.isEmpty) cptCode else if (!hcpcsCode.isEmpty) hcpcsCode else if(!icdCode.isEmpty) icdCode else ""
+    val procedureCode = if(StringUtility.isNotNull(cptCode)) cptCode else if (StringUtility.isNotNull(hcpcsCode)) hcpcsCode else if(StringUtility.isNotNull(icdCode)) icdCode else ""
 
     inputMedClaim = inputMedClaim + claimLine.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id")) + "::"+
       claimLine.getString(MaraUtils.finalOrderingColumns.indexOf("rev_claim_id")) + "::"+
@@ -127,7 +127,7 @@ object MaraUtils extends Serializable{
       inputMedClaim = inputMedClaim + claimLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_diag_" + i + "_code")) + "::"
     }
 
-    inputMedClaim = inputMedClaim + claimLine.getString(MaraUtils.finalOrderingColumns.indexOf("svc_pos_code")) + "::"+procedureCode
+    inputMedClaim = inputMedClaim + procedureCode
 
     inputMedClaim
   }
@@ -170,7 +170,9 @@ object MaraUtils extends Serializable{
       val inputMedClaim = new InputMedClaim
 
       inputMedClaim.setMemberId(claimLine(0))
-      inputMedClaim.setClaimId(claimLine(1))
+      if(StringUtility.isNotNull(claimLine(1))) {
+        inputMedClaim.setClaimId(claimLine(1))
+      }
       inputMedClaim.setClaimSeq(claimLine(2))
       inputMedClaim.setFromDate(new Date(DateUtility.convertStringToLong(claimLine(3))))
       inputMedClaim.setToDate(new Date(DateUtility.convertStringToLong(claimLine(4))))
@@ -181,9 +183,9 @@ object MaraUtils extends Serializable{
       inputMedClaim.setSpecialty("")
       inputMedClaim.setProviderId(claimLine(8))
       inputMedClaim.setPos(claimLine(9))
-      val billed_amount = if (!claimLine(10).isEmpty) claimLine(10).toDouble else 0D
-      val paid_amount = if (!claimLine(11).isEmpty) claimLine(11).toDouble else 0D
-      val allowed_amount = if (!claimLine(12).isEmpty && claimLine(12).toDouble > 0D) claimLine(12).toDouble else paid_amount
+      val billed_amount = if (StringUtility.isNotNull(claimLine(10))) claimLine(10).toDouble else 0D
+      val paid_amount = if (StringUtility.isNotNull(claimLine(11))) claimLine(11).toDouble else 0D
+      val allowed_amount = if (StringUtility.isNotNull(claimLine(12)) && claimLine(12).toDouble > 0D) claimLine(12).toDouble else paid_amount
       inputMedClaim.setCharged(billed_amount)
       inputMedClaim.setPaid(paid_amount)
       inputMedClaim.setAllowed(allowed_amount)
@@ -193,7 +195,7 @@ object MaraUtils extends Serializable{
       }
       inputMedClaim.setDiagList(diagList)
 
-      //inputMedClaim.setProcCode(claimLine(22))
+      inputMedClaim.setProcCode(claimLine(22))
       inputMedClaimList.add(inputMedClaim)
     }
     inputMedClaimList

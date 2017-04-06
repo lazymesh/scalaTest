@@ -72,7 +72,7 @@ class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFr
     rxDF = rxDF.select(MaraUtils.finalOrderingColumns.map(col):_*)
 
     var combined = latestEligDF.union(eligDF).union(medDF).union(rxDF)
-    val maraUdaf = new MaraUDAF(combined.schema, eocDate)
+    val maraUdaf = new MaraUDAF(combined.schema)
     combined = combined.orderBy("inputTypeFlag").groupBy("dw_member_id").agg(
       maraUdaf(MaraUtils.finalOrderingColumns.map(col):_*).as("maraOutput"))
 

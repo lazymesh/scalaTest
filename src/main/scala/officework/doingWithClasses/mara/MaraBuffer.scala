@@ -20,11 +20,14 @@ import scala.collection.mutable
 class MaraBuffer() extends Serializable {
 
   val conditionMapFromFile = MaraUtils.getConditionMap
+  val dataPeriodEndDate = MaraUtils.clientConfigCycleEndDate
+  val dataPeriodStartDate = MaraUtils.dataPeriodStartDate
+  val futureDate = MaraUtils.FUTURE_DATE
 
   val dataPeriodMonthYears = new util.ArrayList[String](12)
-  val eocDateTime = new DateTime(MaraUtils.clientConfigCycleEndDate)
+  val eocDateTime = new DateTime(dataPeriodEndDate)
   dataPeriodMonthYears.clear()
-  for(i <- 1 to 12){
+  for(i <- 0 until 12){
     val newDate = eocDateTime.minusMonths(i)
     dataPeriodMonthYears.add(newDate.getMonthOfYear + "-" + newDate.getYear)
   }
@@ -119,12 +122,14 @@ class MaraBuffer() extends Serializable {
       }
       else termDate = DateUtils.getEligibleToDate(termDate).getMillis
       val currentCycleEndDate = new DateTime(endOfCycleDate).plusMonths(decrease_month).dayOfMonth.withMaximumValue.getMillis*/
-      if (MaraUtils.clientConfigCycleEndDate > effDate && MaraUtils.clientConfigCycleEndDate <= termDate) {
+
+      addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
+      buffer.update(2, eligibleDateRanges)
+
+      if (dataPeriodEndDate > effDate && dataPeriodEndDate <= termDate) {
         buffer.update(1, true)
-        addEligibleDateRanges(eligibleDateRanges, effDate, termDate)
         paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), 0D)
         allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), 0D)
-        buffer.update(2, eligibleDateRanges)
         buffer.update(5, paidAmount)
         buffer.update(6, allowedAmount)
       }
@@ -140,10 +145,11 @@ class MaraBuffer() extends Serializable {
       else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
 
       val memberId = input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id"))
-      println(memberId+DateUtility.convertLongToString(MaraUtils.dataPeriodStartDate)+"::::::::::PHARMACY "+filledDate+":::::::: "+DateUtility.convertLongToString(MaraUtils.clientConfigCycleEndDate))
-      if (MaraUtils.isClaimWithinTwelveMonths(DateUtility.convertStringToLong(filledDate), MaraUtils.dataPeriodStartDate, MaraUtils.clientConfigCycleEndDate)) {
+      println(memberId+" "+paid_amount+"::::::::::PHARMACY "+filledDate+":::::::: "+allowed_amount)
+      if (MaraUtils.isClaimWithinTwelveMonths(DateUtility.convertStringToLong(filledDate), dataPeriodStartDate, dataPeriodEndDate)) {
         inputRxClaimList.add(MaraUtils.getInputRxClaim(input))
         paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), paid_amount)
+        println(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id"))+" "+paidAmount.get(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id"))).get)
         allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), allowed_amount)
         buffer.update(3, inputRxClaimList)
         buffer.update(5, paidAmount)
@@ -154,17 +160,17 @@ class MaraBuffer() extends Serializable {
       //inputFlagType --> 0
       var serviceFromDate = if(StringUtility.isNotNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date"))))
         input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date")) else "2099-12-31"
-      //      val serviceDate = DateUtility.convertStringToLong(input.getString(MaraUtils.finalOrderingColumns.indexOf("svc_service_frm_date")))
       val paid_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")))) 0D
       else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_paid_amt")).toDouble
       val allowed_amount = if (StringUtility.isNull(input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")))) 0D
       else input.getString(MaraUtils.finalOrderingColumns.indexOf("rev_allowed_amt")).toDouble
 
       val memberId = input.getString(MaraUtils.finalOrderingColumns.indexOf("dw_member_id"))
-      println(memberId+DateUtility.convertLongToString(MaraUtils.dataPeriodStartDate)+"::::::::MEDICAL "+serviceFromDate+"::::::::: "+DateUtility.convertLongToString(MaraUtils.clientConfigCycleEndDate))
-      if (MaraUtils.isClaimWithinTwelveMonths(DateUtility.convertStringToLong(serviceFromDate), MaraUtils.dataPeriodStartDate, MaraUtils.clientConfigCycleEndDate)) {
+      println(memberId+" "+paid_amount+"::::::::MEDICAL "+serviceFromDate+"::::::::: "+allowed_amount)
+      if (MaraUtils.isClaimWithinTwelveMonths(DateUtility.convertStringToLong(serviceFromDate), dataPeriodStartDate, dataPeriodEndDate)) {
         inputMedClaimList.add(MaraUtils.getInputMedClaim(input))
         paidAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), paid_amount)
+        println(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id"))+" "+paidAmount.get(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id"))).get)
         allowedAmount.put(input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_emp_group_id")), allowed_amount)
         buffer.update(4, inputMedClaimList)
         buffer.update(5, paidAmount)
@@ -177,9 +183,16 @@ class MaraBuffer() extends Serializable {
     //    val scoreHashMap : mutable.HashMap[String, String] = mutable.HashMap.empty[String, String]
     val member = new InputMember
     val memberInfo = buffer.getList(0)
-    val exposureMonths = calculateExposureMonths(buffer.getMap(2).asInstanceOf[Map[Long, Long]])
+    val exposureMonths = calculateExposureMonths(buffer(2).asInstanceOf[Map[Long, Long]])
+    var mbrDob = new Date(DateUtility.convertStringToLong(memberInfo.get(1)))
+    var age = Years.yearsBetween(new DateTime(mbrDob.getTime), new DateTime(dataPeriodEndDate)).getYears
+    if (age < 0 || age > 200) {
+      val ced = new DateTime(dataPeriodEndDate)
+      mbrDob = ced.minusYears(35).toDate
+      age = Years.yearsBetween(new DateTime(mbrDob.getTime), new DateTime(dataPeriodEndDate)).getYears
+    }
     member.setMemberId(memberInfo.get(0))
-    member.setDob(new Date(DateUtility.convertStringToLong(memberInfo.get(1))))
+    member.setDob(mbrDob)
     member.setDependentStatus(MaraUtils.getDependentStatus(memberInfo.get(2)))
     member.setGender(MaraUtils.getGender(memberInfo.get(4)))
     member.setExposureMonths(exposureMonths)
@@ -198,20 +211,21 @@ class MaraBuffer() extends Serializable {
       conditionString += conditionCode+"^%~"+conditionDescription+"^%~"+conditionMap.get(conditionCode)+"^*~"
     }
     var riskAA = ""
-    var totalPaidAmount = 0D
+    var totalPaidAmount : Double = 0D
     var totalAllowedAmount = 0D
-    val groupwisePaidAmounts = buffer.getMap(5).asInstanceOf[Map[String, Double]]
-    val groupwiseAllowedAmounts = buffer.getMap(6).asInstanceOf[Map[String, Double]]
-    for (groupWiseEntry <- groupwisePaidAmounts) {
+    val groupwisePaidAmounts = buffer(5).asInstanceOf[Map[String, Double]]
+    val groupwiseAllowedAmounts = buffer(6).asInstanceOf[Map[String, Double]]
+    for (groupWiseEntry <- groupwisePaidAmounts.keys) {
+      println("LLLLLLLLLLLLLLLLLLLLLLLLL "+groupWiseEntry+ "^%~" + groupwisePaidAmounts.get(groupWiseEntry).get)
       if (riskAA.isEmpty){
-        riskAA = groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts(groupWiseEntry._1)
-        totalPaidAmount += groupWiseEntry._2
-        totalAllowedAmount += groupwiseAllowedAmounts(groupWiseEntry._1)
+        riskAA = groupWiseEntry + "^%~" + groupwisePaidAmounts.get(groupWiseEntry).get + ";" + groupwiseAllowedAmounts(groupWiseEntry)
+        totalPaidAmount += groupwisePaidAmounts.get(groupWiseEntry).get
+        totalAllowedAmount +=  groupwiseAllowedAmounts(groupWiseEntry)
       }
       else{
-        riskAA = riskAA + "^*~" + groupWiseEntry._1 + "^%~" + groupWiseEntry._2 + ";" + groupwiseAllowedAmounts(groupWiseEntry._1)
-        totalPaidAmount += groupWiseEntry._2
-        totalAllowedAmount += groupwiseAllowedAmounts(groupWiseEntry._1)
+        riskAA = riskAA + "^*~" + groupWiseEntry + "^%~" + groupwisePaidAmounts.get(groupWiseEntry).get + ";" + groupwiseAllowedAmounts(groupWiseEntry)
+        totalPaidAmount += groupwisePaidAmounts.get(groupWiseEntry).get
+        totalAllowedAmount +=  groupwiseAllowedAmounts(groupWiseEntry)
       }
     }
     mutable.HashMap(
@@ -259,22 +273,26 @@ class MaraBuffer() extends Serializable {
       "conditionList" -> conditionString,
       "groupWiseAmounts" -> riskAA,
       "totalPaidAmount" -> totalPaidAmount.toString,
-      "totalAllowedAmount" -> totalAllowedAmount.toString)
+      "totalAllowedAmount" -> totalAllowedAmount.toString,
+      "age" -> age.toString)
   }
 
   private def addEligibleDateRanges(eligibleDateRanges: util.TreeMap[Long, Long], effectiveDate: Long, terminationDate: Long) {
     var effDate = effectiveDate
     var termDate = terminationDate
     if (effDate < termDate) {
-      if (termDate == MaraUtils.FUTURE_DATE) termDate = MaraUtils.clientConfigCycleEndDate
-      if (termDate > MaraUtils.clientConfigCycleEndDate) termDate = MaraUtils.clientConfigCycleEndDate
-      if (effDate < MaraUtils.dataPeriodStartDate) effDate = MaraUtils.dataPeriodStartDate
+      if (termDate == futureDate) termDate = dataPeriodEndDate
+      if (termDate > dataPeriodEndDate) termDate = dataPeriodEndDate
+      if (effDate < dataPeriodStartDate) effDate = dataPeriodStartDate
 
       if (!eligibleDateRanges.isEmpty && eligibleDateRanges.containsKey(effDate) && (eligibleDateRanges.get(effDate) > termDate))
         eligibleDateRanges.put(effDate, eligibleDateRanges.get(effDate))
       else
         eligibleDateRanges.put(effDate, termDate)
     }
+    import scala.collection.JavaConverters._
+    for(ed <- eligibleDateRanges.asScala.keys)
+      println(DateUtility.convertLongToString(ed)+" ::::::::: "+DateUtility.convertLongToString(eligibleDateRanges.get(ed)))
   }
 
   private def calculateExposureMonths(eligibleDateRanges: collection.Map[Long, Long]) = {
@@ -284,26 +302,23 @@ class MaraBuffer() extends Serializable {
       val fromDate = entry._1
       val toDate = entry._2
       var endDate = new DateTime(toDate)
-      val months = DateUtility.getDateDiff(fromDate, toDate, 1)
+      val months = Months.monthsBetween(new DateTime(fromDate), new DateTime(toDate)).getMonths
       println(months+" EEEEEEEEEEEEEEEEEEEE "+DateUtility.convertLongToString(fromDate)+" "+DateUtility.convertLongToString(toDate))
-      for(i <- 1 to months) {
+      for(i <- 0 to months) {
         eligibleMonths.add(endDate.getMonthOfYear + "-" + endDate.getYear)
         endDate = endDate.minusMonths(1)
       }
     }
     import scala.collection.JavaConverters._
     for(eligibleMonthYear <- eligibleMonths.asScala) {
-      println("ooooooooooo "+eligibleMonthYear)
-      if (dataPeriodMonthYears.contains(eligibleMonthYear)){
-        println("iiiiiiiiiii "+eligibleMonthYear)
-        exposureMonths += 1}
+      if (dataPeriodMonthYears.contains(eligibleMonthYear)) exposureMonths += 1
     }
     println(exposureMonths)
     exposureMonths
   }
 
   private def calculateRiskScores(inputMember: InputMember, modelProcessor: ModelProcessor) = {
-    var outputMaraResultSet : OutputMaraResultSet = new OutputMaraResultSet
+    var outputMaraResultSet : OutputMaraResultSet = null
     try {
       outputMaraResultSet = modelProcessor.processMember(inputMember)
     }
@@ -331,9 +346,9 @@ class MaraBuffer() extends Serializable {
   }
 
   def tryRecalculatingRiskScoreForInvalidMembers(inputMember: InputMember, modelProcessor: ModelProcessor) = {
-    val age = Years.yearsBetween(new DateTime(inputMember.getDob.getTime), new DateTime(MaraUtils.clientConfigCycleEndDate)).getYears
-    System.out.println("Invalid Age " + age + " CycleEndDate " + new Date(MaraUtils.clientConfigCycleEndDate) + " Member Id " + inputMember.getMemberId)
-    val cycleEndDate = new DateTime(MaraUtils.clientConfigCycleEndDate)
+    val age = Years.yearsBetween(new DateTime(inputMember.getDob.getTime), new DateTime(dataPeriodEndDate)).getYears
+    System.out.println("Invalid Age " + age + " CycleEndDate " + new Date(dataPeriodEndDate) + " Member Id " + inputMember.getMemberId)
+    val cycleEndDate = new DateTime(dataPeriodEndDate)
     val newDob = cycleEndDate.minusYears(35).getMillis
     inputMember.setDob(new Date(newDob))
     var outputMaraResultSet : OutputMaraResultSet = new OutputMaraResultSet

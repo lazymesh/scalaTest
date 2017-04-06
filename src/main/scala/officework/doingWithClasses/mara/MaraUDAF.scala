@@ -3,6 +3,7 @@ package officework.doingWithClasses.mara
 import java.util
 
 import main.scala.officework.doingWithObjects.DateUtils
+import officework.doingWithClasses.SummableMap
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types.{DataType, DataTypes, StructField, StructType}
@@ -12,8 +13,7 @@ import scala.collection.mutable
 /**
   * Created by ramaharjan on 3/9/17.
   */
-class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends UserDefinedAggregateFunction {
-  val eocDate = endCycleDate
+class MaraUDAF(inputSourceSchema : StructType) extends UserDefinedAggregateFunction {
   var sourceSchema : StructType = _
   var bufferedSchema : StructType = _
   var returnDataType : DataType = DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType)
@@ -38,7 +38,7 @@ class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends Us
   val bufferStructField6 : StructField = DataTypes.createStructField("groupWisePaidAllowedAmount", DataTypes.createMapType(DataTypes.StringType, DataTypes.DoubleType, true), true)
   bufferFields.add(bufferStructField6)
   bufferedSchema = DataTypes.createStructType(bufferFields)
-  val maraBuffer : MaraBuffer = new MaraBuffer(eocDate)
+  var maraBuffer : MaraBuffer = new MaraBuffer()
 
   // This is the input fields for your aggregate function.
   override def  inputSchema() : StructType =  sourceSchema
@@ -76,8 +76,8 @@ class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends Us
     * This method is used to iterate between input rows
     */
   override def update(buffer : MutableAggregationBuffer, input : Row) : Unit = {
-    println("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU "+input.getString(MaraUtils.finalOrderingColumns.indexOf("ins_med_eff_date")))
     maraBuffer.populate(buffer, input)
+    println("**********8888 "+buffer(5).asInstanceOf[Map[String, Double]].getOrElse("02", "empty"))
   }
 
   /**
@@ -91,8 +91,13 @@ class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends Us
     buffer.update(2, buffer.getMap(2) ++ input.getMap(2)) //map for exposure months
     buffer.update(3, buffer.getList(3).toArray() ++ input.getList(3).toArray()) //pharmacy claim list to be passed to mara
     buffer.update(4, buffer.getList(4).toArray() ++ input.getList(4).toArray()) //medical claim list to be passed to mara
-    buffer.update(5, buffer.getMap(5) ++ input.getMap(5)) //map for groupwise paid amount
-    buffer.update(6, buffer.getMap(6) ++ input.getMap(6)) //map for groupwise allowed amount
+
+    //    buffer.update(5, buffer.getMap(5) ++ input.getMap(5)) //map for groupwise paid amount
+    if(!buffer.getList(0).isEmpty) {
+      println("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR " + buffer.getList(0).get(0))
+    }
+    buffer.update(5, mergeAmounts(buffer.getMap(5).asInstanceOf[Map[String, Double]], input.getMap(5).asInstanceOf[Map[String, Double]])) //map for groupwise paid amount
+    buffer.update(6, mergeAmounts(buffer.getMap(6).asInstanceOf[Map[String, Double]], input.getMap(6).asInstanceOf[Map[String, Double]])) //map for groupwise allowed amount
   }
 
   /**
@@ -104,5 +109,22 @@ class MaraUDAF(inputSourceSchema : StructType, endCycleDate : String) extends Us
     }
     else
       mutable.HashMap("emptyscore" -> "")
+  }
+
+  def mergeAmounts(buffer : Map[String, Double], input : Map[String, Double]) : SummableMap[String, Double] ={
+
+    //    println(buffer(5).asInstanceOf[Map[String, Double]].getOrElse("02", "empty")+" eeeeeeeeeeeee "+input(5).asInstanceOf[Map[String, Double]].getOrElse("02", "empty"))
+    val amount : SummableMap[String, Double] = new SummableMap[String, Double]
+    var prevPaidAmountMap = buffer
+    for(map <- prevPaidAmountMap) {
+      amount.put(map._1, map._2)
+      //      println(map._1+" &&&&&&&&&&&&&&& "+amount.getOrElse(map._1, "empty"))
+    }
+    val newPaidAmountMap = input
+    for(map <- newPaidAmountMap){
+      amount.put(map._1, map._2)
+      //      println(map._1+" ^^^^^^^^^^^^^^^^^^ "+amount.getOrElse(map._1, "empty"))
+    }
+    amount
   }
 }
