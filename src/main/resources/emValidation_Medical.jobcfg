@@ -6,8 +6,8 @@
 #--------------- Mandatory --------------------------
 inputLayoutFile     = /medicalLayout.csv
 outputLayoutFile    = medicalLayout.csv,duplicateReversalFlagsLayout.csv,selectedProcedureLayout.csv
-inputFile           = /home/anahcolus/IdeaProjects/scalaTest/src/main/resources/Medical.csv
-outputDirectory     = EMMedical
+inputFile           = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Medical.csv
+outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/EMMedical
 recordType          = Medical
 trapDirectory       = traps/layout/Medical
 clientConfigFile    = client_config.properties

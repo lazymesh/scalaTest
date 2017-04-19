@@ -11,21 +11,19 @@ class GoldenRulesUDFs(eoc : String, clientType : String) extends scala.Serializa
   staticValues.setEOC(eoc)
   staticValues.setClienType(clientType)
 
-  val dateUtility = new DateUtility
-
   def goldenRuleDOB = udf((dob: String, relationshipClass: String) =>
     if((dob == null) && (relationshipClass.equalsIgnoreCase("dependent") || relationshipClass.equalsIgnoreCase("other"))){
-      dateUtility.convertLongToString(dateUtility.subtractYearsFromStringDate(staticValues.getEOC(), 8))
+      DateUtility.convertLongToString(DateUtility.subtractYearsFromStringDate(staticValues.getEOC(), 8))
     }
     else if((dob == null) && (relationshipClass.equalsIgnoreCase("employee") || relationshipClass.equalsIgnoreCase("spouse"))){
-      dateUtility.convertLongToString(dateUtility.subtractYearsFromStringDate(staticValues.getEOC(), 27))
+      DateUtility.convertLongToString(DateUtility.subtractYearsFromStringDate(staticValues.getEOC(), 27))
     }
     else dob
   )
 
   def goldenRuleRelationshipCode = udf((code: String, dob: String) =>
     if(code.isEmpty) {
-      if (dateUtility.getAge(staticValues.getEOC(), dob) > 26 || staticValues.getClientType().equalsIgnoreCase("medicaid") || staticValues.getClientType().equalsIgnoreCase("medicare")) {
+      if (DateUtility.getAge(staticValues.getEOC(), dob) > 26 || staticValues.getClientType().equalsIgnoreCase("medicaid") || staticValues.getClientType().equalsIgnoreCase("medicare")) {
         "E"
       }
       else

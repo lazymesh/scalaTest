@@ -52,7 +52,7 @@ class MaraTests extends FunSuite with BeforeAndAfterEach {
     val medicalTable = generateDataFrame.createDataFrameFromResource(sparkContext, sqlContext, medicalDataFileLocation, medicalSchema, "\\^%~")
     val pharmacyTable = generateDataFrame.createDataFrameFromResource(sparkContext, sqlContext, pharmacyDataFileLocation, pharmacySchema, "\\^%~")
 
-    val maraAssembly = new MaraAssembly(eligTable, medicalTable, pharmacyTable, "2011-01-30", sparkContext, sqlContext)
+    val maraAssembly = new MaraAssembly(eligTable, medicalTable, pharmacyTable, sparkContext, sqlContext)
     maraAssembly.maraCalculator.show(100, false)
 
     sparkContext.stop

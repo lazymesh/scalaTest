@@ -1,32 +1,26 @@
 package main.scala.officework.doingWithClasses.mara
 
 
-import java.util
-
 import officework.doingWithClasses.mara.{MaraUDAF, MaraUtils}
-import org.apache.avro.generic.GenericData.StringType
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lit, row_number, udf}
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 
-import scala.collection.immutable.HashMap.HashTrieMap
 import scala.collection.mutable
 
 
 /**
   * Created by ramaharjan on 3/2/17.
   */
-class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame, endCycleDate : String, sc : SparkContext, sQLContext: SQLContext) {
+class MaraAssembly(eligDataFrame : DataFrame, medDataFrame : DataFrame, rxDataFrame : DataFrame, sc : SparkContext, sQLContext: SQLContext) {
 
   var eligDF = eligDataFrame
   var medDF = medDataFrame
   var rxDF = rxDataFrame
-  val eocDate = endCycleDate
 
   val dfsWorkingDir = FileSystem.get(new Configuration()).getWorkingDirectory
   val mara1DatFile = "/mara3_9_0/MARA1.dat"

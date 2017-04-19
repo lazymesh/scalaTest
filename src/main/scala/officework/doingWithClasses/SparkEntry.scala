@@ -132,7 +132,7 @@ object SparkEntry {
     eligibilityTable.drop(medicalDF.col("dw_member_id_1"))
 
 
-    val maraAssembly = new MaraAssembly(eligibilityTable, medicalGoldenRulesApplied, pharmacyTable, clientConfig.getEOC, sc, sqlContext)
+    val maraAssembly = new MaraAssembly(eligibilityTable, medicalGoldenRulesApplied, pharmacyTable, sc, sqlContext)
     val maraDataFrame = maraAssembly.maraCalculator
     maraDataFrame.show(1000, false)
 

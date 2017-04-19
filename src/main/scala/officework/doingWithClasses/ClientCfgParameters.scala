@@ -15,4 +15,13 @@ class ClientCfgParameters(clientConfigFile : String) {
   def getClientType(): String ={
     clientConfigProps("clientType")
   }
+
+  def getRecordExists(recordType : String): String ={
+    if(clientConfigProps.contains(recordType.toLowerCase()+"Exists")){
+      clientConfigProps(recordType.toLowerCase()+"Exists")
+    }
+    else {
+      "true"
+    }
+  }
 }

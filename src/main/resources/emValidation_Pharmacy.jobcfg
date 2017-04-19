@@ -4,10 +4,10 @@
 #$HADOOP jar $JAR -job emValidation -clientId $clientId -input /user/hdfs/$clientId/input/claims/Pharmacy.csv -output /user/hdfs/$clientId/Pharmacy/ --recordType Pharmacy --layout pharmacyLayout.csv --configFile classPath:config/client_config.properties
 #
 #--------------- Mandatory --------------------------
-inputLayoutFile     = pharmacyLayout.csv
-inputFile           = input/claims/Pharmacy
+inputLayoutFile     = /pharmacyLayout.csv
+inputFile           = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/Pharmacy.csv
 recordType          = Pharmacy
-outputDirectory     = Pharmacy
+outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/Pharmacy
 trapDirectory       = traps/layout/Pharmacy
 clientConfigFile    = client_config.properties
 
