@@ -1,12 +1,10 @@
 package officework.doingWithClasses.framework.validation
 
 import officework.doingWithClasses.framework.dataframeutils.{GenerateDataFrame, GenerateSchemas}
-import officework.doingWithClasses.framework.emvalidation.MemberValidator
-import officework.doingWithClasses.framework.goldenrules._
 import officework.doingWithClasses.framework.interfaces.JobInterface
 import officework.doingWithClasses.framework.utils.{ClientCfgParameters, JobCfgParameters, OutputSavingFormatUtils}
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql.{DataFrame, SQLContext}
 
 /**
   * Created by ramaharjan on 4/19/17.
@@ -32,27 +30,19 @@ class ValidationJob extends JobInterface{
     //dataframe creating instance
     val generateDataFrame = new GenerateDataFrame
     //data frame generation for input source
-    var dataFrame = generateDataFrame.createDataFrame(sQLContext, dataRdd, schema, "\\^%~")
+    var dataFrame = generateDataFrame.createDataFrame(recordType, sQLContext, dataRdd, schema, "\\^%~")
 
-    if(recordType.equalsIgnoreCase("eligibility")){
-      //applying golden rules
-      val goldenRules = new GoldenRules(clientConfig.getEOC, clientConfig.getClientType)
-      dataFrame = goldenRules.applyEligibilityGoldenRules(dataFrame)
+    dataFrame = applyDataSpecificFunctions(recordType, dataFrame, clientConfig, jobConfig, sparkContext, sQLContext)
 
-      val tempMemberIdTable = dataFrame.select("dw_member_id").distinct().withColumnRenamed("dw_member_id", "dw_member_id_1")
-      tempMemberIdTable.createOrReplaceTempView("tempMemberIdTable")
-      val memberIdDataFrame = sQLContext.sql("select row_number() over (order by dw_member_id_1) as integer_member_id,dw_member_id_1 from tempMemberIdTable")
-
-      MemberValidator.setMemberValidatorDataFrame(memberIdDataFrame, sparkContext)
-//      val memberIntRDD = memberIdDataFrame.rdd.map(row => row.toString().replace("[","").replace("]",""))
-      //    OutputSavingFormatUtils.sequenceTupleFormats(memberIntRDD, eligJobConfig.getIntMemberId, ",")
-      //   OutputSavingFormatUtils.textCSVFormats(memberIntRDD, eligJobConfig.getIntMemberId)
-      OutputSavingFormatUtils.dataFrameToCSVFormat(memberIdDataFrame, jobConfig.getIntMemberId)
-    }
     val outputRdd = dataFrame.rdd.map(row => row.toString().replace("[","").replace("]",""))
 //    OutputSavingFormatUtils.sequenceTupleFormats(outputRdd, jobConfig.getSinkFilePath, ",")
 //    OutputSavingFormatUtils.textCSVFormats(outputRdd, jobConfig.getSinkFilePath)
     OutputSavingFormatUtils.dataFrameToCSVFormat(dataFrame, jobConfig.getSinkFilePath)
+  }
+
+  def applyDataSpecificFunctions(recordType: String, dataFrame: DataFrame, clientCfg: ClientCfgParameters, jobCfg: JobCfgParameters, sparkContext: SparkContext, sQLContext: SQLContext) : DataFrame = recordType.toLowerCase() match {
+    case "eligibility" => ValidationEligibilityAssembly(dataFrame, clientCfg, jobCfg, sparkContext, sQLContext)
+    case _ => dataFrame
   }
 }
 

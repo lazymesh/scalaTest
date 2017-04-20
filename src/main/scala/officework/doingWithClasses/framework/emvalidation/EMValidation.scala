@@ -31,12 +31,12 @@ class EMValidation extends JobInterface{
     //dataframe creating instance
     val generateDataFrame = new GenerateDataFrame
     //data frame generation for input source
-    var dataFrame = generateDataFrame.createDataFrame(sQLContext, dataRdd, schema, "\\^%~")
+    var dataFrame = generateDataFrame.createDataFrame(recordType, sQLContext, dataRdd, schema, "\\^%~")
     dataFrame = dataFrame.join(MemberValidator.getBroadCastedMemberDataFrame().value, dataFrame("dw_member_id") === MemberValidator.getBroadCastedMemberDataFrame().value("dw_member_id_1"), "inner")
 
     //applying golden rules
     val goldenRules = new GoldenRules(clientConfig.getEOC, clientConfig.getClientType)
-    dataFrame = applyGoldenRules(recordType, dataFrame, goldenRules, sparkContext)
+    dataFrame = applyDataSpecificFunctions(recordType, dataFrame, goldenRules, sparkContext)
 
     dataFrame.show()
 //    val outputRdd = dataFrame.rdd.map(row => row.toString().replace("[","").replace("]","")) // taking time
@@ -45,7 +45,7 @@ class EMValidation extends JobInterface{
     OutputSavingFormatUtils.dataFrameToCSVFormat(dataFrame, jobConfig.getSinkFilePath)
   }
 
-  def applyGoldenRules(recordType: String, dataFrame: DataFrame, goldenRules: GoldenRules, sparkContext: SparkContext) : DataFrame = recordType.toLowerCase() match {
+  def applyDataSpecificFunctions(recordType: String, dataFrame: DataFrame, goldenRules: GoldenRules, sparkContext: SparkContext) : DataFrame = recordType.toLowerCase() match {
       case "medical" => EMMedicalAssembly(dataFrame, goldenRules, sparkContext)
       case "pharmacy" => goldenRules.applyPharmacyGoldenRules(dataFrame)
       case "hra" => goldenRules.applyHRAGoldenRules(dataFrame)

@@ -16,8 +16,8 @@ class GenerateDataFrame extends scala.Serializable{
   val validators = new Validators
 
   //dataframe generation from input source using the schema generated
-  def createDataFrame(sqlContext : SQLContext, inputLines : RDD[String], schema : StructType, delimiter : String): DataFrame ={
-    val rowFields = inputLines.map{line => line.split(delimiter, -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes(value.replace("\"", ""), struct) })}
+  def createDataFrame(recordType: String, sqlContext : SQLContext, inputLines : RDD[String], schema : StructType, delimiter : String): DataFrame ={
+    val rowFields = inputLines.map{line => line.split(delimiter, -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes(recordType, value.replace("\"", ""), struct) })}
     val df = sqlContext.createDataFrame(rowFields, schema)
     //    df.show()
     df
@@ -27,7 +27,7 @@ class GenerateDataFrame extends scala.Serializable{
   def createDataFrameFromResource(sparkContext : SparkContext, sqlContext : SQLContext, fileLocation : String, schema : StructType, delimiter : String): DataFrame ={
     val lines = Source.fromInputStream(getClass.getResourceAsStream(fileLocation)).getLines()
     val rowToRDD = sparkContext.parallelize(lines.toList)
-    val rowFields = rowToRDD.map{line => line.split(delimiter, -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes(value.replace("\"", ""), struct) })}
+    val rowFields = rowToRDD.map{line => line.split(delimiter, -1)}.map{ array => Row.fromSeq(array.zip(schema.toSeq).map{ case (value, struct) => validators.convertTypes("", value.replace("\"", ""), struct) })}
     val df = sqlContext.createDataFrame(rowFields, schema)
     //    df.show()
     df

@@ -3,44 +3,58 @@ package officework.doingWithClasses.framework.validation
 import officework.Patterns
 import org.apache.spark.sql.types._
 
+import scala.util.Try
+
 /**
   * Created by ramaharjan on 2/1/17.
   */
 class Validators extends scala.Serializable{
 
-  def convertTypes(value: String, struct: StructField): Any = struct.dataType match {
-    case DoubleType => if(!value.isEmpty && formatValidator(value, struct)) value.toDouble else 0D
-    case FloatType => if(!value.isEmpty && formatValidator(value, struct)) value.toFloat else 0F
-    case DateType => if(!value.isEmpty && formatValidator(value, struct)) java.sql.Date.valueOf(value.toString) else java.sql.Date.valueOf("2099-12-31")
-    case IntegerType => if(!value.isEmpty && formatValidator(value, struct)) value.toInt else 0
-    case LongType => if(!value.isEmpty && formatValidator(value, struct)) value.toLong else 0L
-    case _ => if(!value.isEmpty && formatValidator(value, struct)) value else ""
-  }
-
-  def formatValidator(value : String, struct: StructField) : Boolean = {
-    if (value == null || StringType.equals(struct.dataType)) {
-      //do nothing
-    } else if (IntegerType.equals(struct.dataType)) {
-      if (!value.toString.matches(Patterns.INT_PATTERN)) {
-        throw new RuntimeException("Invalid format for field: " + struct.name + " Type: " + struct.dataType + " Value: " + value)
+  def convertTypes(recordType: String, value: String, struct: StructField): Any = struct.dataType match {
+    case DoubleType => {
+      if (!value.isEmpty && !value.toString.matches(Patterns.FLOAT_PATTERN)) {
+        throwRuntimeException(struct.name, struct.dataType, value, recordType)
       }
-    } else if (DateType.equals(struct.dataType)) {
-      if (!value.toString.matches(Patterns.DATE_PATTERN)) {
-        throw new RuntimeException("Invalid format for field: " + struct.name + " Type: " + struct.dataType + " Value: " + value)
-      }
-    } else if (DoubleType.equals(struct.dataType)) {
-      if (!value.toString.matches(Patterns.FLOAT_PATTERN)) {
-        throw new RuntimeException("Invalid format for field: " + struct.name + " Type: " + struct.dataType + " Value: " + value)
-      }
-    } else if (LongType.equals(struct.dataType)) {
-      if (!value.toString.matches(Patterns.INT_PATTERN)) {
-        throw new RuntimeException("Invalid format for field: " + struct.name + " Type: " + struct.dataType + " Value: " + value)
-      }
-    } else if (FloatType.equals(struct.dataType)) {
-      if (!value.toString.matches(Patterns.FLOAT_PATTERN)) {
-        throw new RuntimeException("Invalid format for field: " + struct.name + " Type: " + struct.dataType + " Value: " + value)
+      else {
+        Try(value.toDouble) getOrElse 0D
       }
     }
-    true
+    case FloatType => {
+      if (!value.isEmpty && !value.toString.matches(Patterns.FLOAT_PATTERN)) {
+        throwRuntimeException(struct.name, struct.dataType, value, recordType)
+      }
+      else {
+        Try(value.toFloat) getOrElse 0F
+      }
+    }
+    case DateType => {
+      if (!value.isEmpty && !value.toString.matches(Patterns.DATE_PATTERN)) {
+        throwRuntimeException(struct.name, struct.dataType, value, recordType)
+      }
+      else {
+        Try(java.sql.Date.valueOf(value.toString)) getOrElse java.sql.Date.valueOf("2099-12-31")
+      }
+    }
+    case IntegerType => {
+      if (!value.isEmpty && !value.toString.matches(Patterns.INT_PATTERN)) {
+        throwRuntimeException(struct.name, struct.dataType, value, recordType)
+      }
+      else {
+        Try(value.toInt) getOrElse 0
+      }
+    }
+    case LongType => {
+      if (!value.isEmpty && !value.toString.matches(Patterns.INT_PATTERN)) {
+        throwRuntimeException(struct.name, struct.dataType, value, recordType)
+      }
+      else {
+        Try(value.toLong) getOrElse 0L
+      }
+    }
+    case _ => Option(value) getOrElse ""
+  }
+
+  def throwRuntimeException(field: String, fieldType: DataType, value: String, recordType: String) : Unit ={
+    throw new RuntimeException(recordType + " : Invalid format for field: " + field + " Type: " + fieldType + " Value: " + value)
   }
 }

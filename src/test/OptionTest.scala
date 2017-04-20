@@ -24,7 +24,7 @@ class OptionTest extends FunSuite with BeforeAndAfterEach{
   }
 
   test("option test"){
-    val value = ";;;;"
+    val value = null
     val print = Option(value) getOrElse("nulddddl value")
     println(print)
 
