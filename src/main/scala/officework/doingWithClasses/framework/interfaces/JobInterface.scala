@@ -1,8 +1,9 @@
 package officework.doingWithClasses.framework.interfaces
 
-import main.scala.officework.doingWithClasses.{ClientCfgParameters, JobCfgParameters}
+import officework.doingWithClasses.framework.utils.ClientCfgParameters
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{SQLContext, SparkSession}
+
 
 /**
   * Created by ramaharjan on 4/19/17.
@@ -13,6 +14,7 @@ abstract class JobInterface {
                clientConfig : ClientCfgParameters,
                jobConfig : String,
                recordType : String,
-               sparkSession: SparkSession
+               sparkContext: SparkContext,
+               sQLContext: SQLContext
              )
 }

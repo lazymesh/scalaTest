@@ -1,4 +1,4 @@
 #this file contains classNames recordTypes = jobconfigs
-ValidationJob Eligibility = validation_eligibility.jobcfg
-#EMValidation Medical = emValidation_Medical.jobcfg
-#EMValidation Pharmacy = emValidation_Pharmacy.jobcfg
+validation.ValidationJob Eligibility = validation_eligibility.jobcfg
+emvalidation.EMValidation Medical = emValidation_Medical.jobcfg
+emvalidation.EMValidation Pharmacy = emValidation_Pharmacy.jobcfg

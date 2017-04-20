@@ -1,7 +1,7 @@
 package officework.doingWithClasses.framework
 
-import main.scala.officework.doingWithClasses.{ClientCfgParameters, JobCfgParameters}
 import officework.doingWithClasses.framework.interfaces.JobInterface
+import officework.doingWithClasses.framework.utils.ClientCfgParameters
 import org.apache.spark.sql.SparkSession
 
 import scala.io.Source
@@ -19,6 +19,9 @@ object SparkEngine {
       .config("", "")
       .getOrCreate()
 
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+
     //    val clientId = args(0)
     val clientId = "client"
     val clientJobFile = "/framework/"+clientId+".txt"
@@ -32,14 +35,15 @@ object SparkEngine {
     jobTuples.foreach(job => {
       if(!clientConfig.getRecordExists(job._2).equalsIgnoreCase("false")){
         println(job._1+" "+job._2+" "+job._3)
-        processJob(job._1).process(clientConfig, job._3, job._2, sparkSession)
+        processJob(job._1).process(clientConfig, job._3, job._2, sparkContext, sqlContext)
       }
     })
 
+    sparkSession.stop()
   }
 
   def processJob(name: String): JobInterface = {
-    val action = Class.forName("officework.doingWithClasses.framework.validation."+name).newInstance()
+    val action = Class.forName("officework.doingWithClasses.framework."+name).newInstance()
     action.asInstanceOf[JobInterface]
   }
 }
