@@ -16,7 +16,7 @@ class ReadingFromResourcesTests extends FunSuite with BeforeAndAfterEach {
   }
 
   test("testing to read from resources"){
-    val text = Source.fromInputStream(getClass.getResourceAsStream("/validation_eligibility.jobcfg"))
+    val text = Source.fromInputStream(getClass.getResourceAsStream("/jobConfigs/validation_eligibility.jobcfg"))
     text.foreach(print)
   }
 

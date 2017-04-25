@@ -133,7 +133,7 @@ class MasterTablePropertiesTests extends FunSuite with BeforeAndAfterEach {
     val sqlContext = sparkSession.sqlContext
 
     val generateSchemas = new GenerateSchemas
-    val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
+    val masterTableSchema = generateSchemas.dynamicSchema("/layouts/diagnosisLayout.csv")
     val generateDataFrame = new GenerateDataFrame
 
     val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)

@@ -1,0 +1,11 @@
+#Description : formatValidation Job Configuration file for eligibility validation
+#jobName : formatValidation
+#
+#$HADOOP jar $JAR -job formatValidation -clientId $clientId -input /user/hdfs/$clientId/input/claims/Eligibility.csv -output /user/hdfs/$clientId/Eligibility/ --recordType Eligibility --configFile classPath:config/client_config.properties --layout eligibilityLayout.csv
+#
+#--------------- Mandatory --------------------------
+inputLayoutFile     = /layouts/eligibilityLayout.csv
+inputFile           = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/data/Eligibility.csv
+recordType          = Eligibility
+outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/Eligibility
+outputIntMemberId     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/IntegerMemberId

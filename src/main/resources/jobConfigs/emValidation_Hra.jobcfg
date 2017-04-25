@@ -1,0 +1,10 @@
+#Description : EM Validation Job Configuration file
+#jobName : emValidation
+#
+#$HADOOP jar $JAR -job emValidation -clientId $clientId -input /user/swshrestha/$clientId/input/claims/Hra.csv -output /user/swshrestha/$clientId/Hra/ --recordType Hra --layout hraLayout.csv
+#
+#--------------- Mandatory --------------------------
+inputLayoutFile     = /layouts/hraLayout.csv
+inputFile           = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/data/Hra.csv
+outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/Hra
+recordType          = Hra

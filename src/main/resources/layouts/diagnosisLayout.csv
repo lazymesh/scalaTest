@@ -1,0 +1,12 @@
+1;seq;seq;seq;string;;
+2;diagnosisCode;diagnosisCode;diagnosisCode;string;;
+3;description;diagnosisDescription;diagnosisDescription;string;;
+4;superGrouperID;superGrouperId;superGrouperId;string;;
+5;superGrouperDescription;superGrouperDescription;superGrouperDescription;string;;
+6;grouperID;grouperId;grouperId;string;;
+7;grouperDescription;grouperDescription;grouperDescription;string;;
+8;oldGrouperID;oldGrouperId;oldGrouperId;string;;
+9;oldGrouperDescription;oldGrouperDescription;oldGrouperDescription;string;;
+10;oldSubGrouperDescription;oldSubGrouperDescription;oldSubGrouperDescription;string;;
+11;isIcd10;isIcd10;isIcd10;string;;
+12;version;version;version;string;;

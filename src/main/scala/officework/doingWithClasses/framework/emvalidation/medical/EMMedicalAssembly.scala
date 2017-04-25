@@ -21,10 +21,7 @@ class EMMedicalAssembly(dataFrame: DataFrame, goldenRules: GoldenRules, sparkCon
   val diagnosisMasterTableLocation : String = dfsWorkingDir+"/masterTables/Diagnosis.csv"
   //    sc.addFile(diagnosisMasterTableLocation)
   //    val diagnosisMasterTableUdfs = new DiagnosisMasterTableUDFs(SparkFiles.get("Diagnosis.csv"))
-  val diagMasterTableRddMap = sparkContext.textFile(diagnosisMasterTableLocation).map(line => {
-    println(line)
-    line
-  })
+  val diagMasterTableRddMap = sparkContext.textFile(diagnosisMasterTableLocation)
     .map(line=>line.split("\\|", -1))
     .map(row => row(1).replace("\"","") -> Array(row(5).replace("\"",""), row(6).replace("\"",""), row(3).replace("\"",""), row(4).replace("\"","")))
     .collectAsMap()

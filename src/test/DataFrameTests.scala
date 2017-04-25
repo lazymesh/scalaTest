@@ -167,4 +167,48 @@ df.show(false)
 
     rddDF.foreach(println)
   }
+
+  test("testing t"){
+    val sparkContext = sparkSession.sparkContext
+    val sqlContext = sparkSession.sqlContext
+    import sqlContext.implicits._
+    // select only diag codes from medical table
+    var df = Seq(
+      ("0", "4", "2", "3", "4", "0", "6", "3", "9"),
+      ("0", "3", "4", "3", "4", "0", "6", "3", "9"),
+      ("0", "1", "3", "3", "4", "0", "6", "3", "9"),
+      ("1", "3", "4", "5", "1", "3", "4", "5", "1"),
+      ("1", "3", "4", "5", "1", "3", "4", "5", "1"),
+      ("1", "3", "4", "5", "1", "3", "4", "5", "1"),
+      ("2", "6", "2", "8", "2", "6", "6", "8", "2"),
+      ("2", "8", "8", "8", "2", "6", "6", "8", "2"),
+      ("2", "8", "1", "8", "2", "6", "6", "8", "2"),
+      ("3", "9", "9", "1", "3", "9", "9", "1", "3"))
+      .toDF("svc_diag_1_code", "svc_diag_2_code", "svc_diag_3_code", "svc_diag_4_code", "svc_diag_5_code",
+        "svc_diag_6_code", "svc_diag_7_code", "svc_diag_8_code", "svc_diag_9_code")
+
+    val productList = Array("f", "svc_diag_2_code", "d", "svc_diag_4_code", "svc_diag_5_code",
+      "s", "svc_diag_7_code", "w", "svc_diag_9_code")
+    val column_names1 = df.schema.fieldNames
+    val selectColumns = column_names1.filter(productList.contains(_))
+    selectColumns.foreach(println)
+    df.select(selectColumns.map(df.col(_)):_*).show
+/*//    for( i<- productList){
+      var k : String = null
+      var tempdf = sparkContext.emptyRDD[(Double)].toDF("New")
+      tempdf = tempdf.drop("New")
+      for( j <- 1 to column_names1.length ){//`enter code here`
+        k = column_names1(j-1).trim
+
+        if(k.contains(i)){
+          println(k)
+          tempdf =   tempdf.withColumn(k ,df.col(k))// here is the error
+          df = df.drop(k) //`enter code here`
+
+        }
+      }
+    df.show*/
+
+    sparkContext.stop()
+  }
 }

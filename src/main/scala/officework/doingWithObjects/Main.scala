@@ -19,7 +19,7 @@ object Main {
     //reading clientConfig
     val clientConfigFile = "/client_config.properties"
     //reading jobconfig for input output recordtypes etc
-    val jobConfigFile = "/validation_eligibility.jobcfg"
+    val jobConfigFile = "/jobConfigs/validation_eligibility.jobcfg"
 
     //loading the properties to map
     val clientConfigProps = LoadProperties.readPropertiesToMap(clientConfigFile)

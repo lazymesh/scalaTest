@@ -15,8 +15,8 @@ object SparkEntry {
   def main(args: Array[String]) {
 
     //    val clientId = args(0)+"/"
-    val eligJobConfig = new JobCfgParameters("/validation_eligibility.jobcfg")
-    val medicalJobConfig = new JobCfgParameters("/emValidation_Medical.jobcfg")
+    val eligJobConfig = new JobCfgParameters("/jobConfigs/validation_eligibility.jobcfg")
+    val medicalJobConfig = new JobCfgParameters("/jobConfigs/emValidation_Medical.jobcfg")
 
     val clientConfig = new ClientCfgParameters("/client_config.properties")
 
@@ -113,7 +113,7 @@ object SparkEntry {
     //    OutputSavingFormatUtils.dataFrameToCSVFormat(medicalGoldenRulesApplied, medicalJobConfig.getSinkFilePath)
 
     //EmValidation of medical
-    val pharmacyJobConfig = new JobCfgParameters("/emValidation_Pharmacy.jobcfg")
+    val pharmacyJobConfig = new JobCfgParameters("/jobConfigs/emValidation_Pharmacy.jobcfg")
     val pharmacySchema = generateSchemas.dynamicSchema(pharmacyJobConfig.getInputLayoutFilePath)
     val pharmacyDataRdd = sc.textFile(pharmacyJobConfig.getSourceFilePath)
     var pharmacyTable = generateDataFrame.createDataFrame(sqlContext, pharmacyDataRdd, pharmacySchema, "\\^%~")

@@ -27,7 +27,7 @@ class MasterTableGroupers extends scala.Serializable{
     val sparkContext = sparkSession.sparkContext
     val sqlContext = sparkSession.sqlContext
     val generateSchemas = new GenerateSchemas
-    val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
+    val masterTableSchema = generateSchemas.dynamicSchema("/layouts/diagnosisLayout.csv")
     val generateDataFrame = new GenerateDataFrame
     val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
     val masterTableDF = generateDataFrame.createDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema, "\\|")
@@ -134,7 +134,7 @@ class MasterTableGroupers extends scala.Serializable{
 
   def readPropertiesToMap(sparkContext : SparkContext, sqlContext : SQLContext, masterTableLocation : String): Unit = {
     val generateSchemas = new GenerateSchemas
-    val masterTableSchema = generateSchemas.dynamicSchema("/diagnosisLayout.csv")
+    val masterTableSchema = generateSchemas.dynamicSchema("/layouts/diagnosisLayout.csv")
     val generateDataFrame = new GenerateDataFrame
     val masterTableDiagRdd = sparkContext.textFile(masterTableLocation)
     val masterTableDF = generateDataFrame.createDataFrame(sqlContext, masterTableDiagRdd, masterTableSchema, "\\|")

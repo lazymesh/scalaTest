@@ -3,7 +3,6 @@ package officework.doingWithClasses.framework.utils
 import java.util
 
 import cascading.tuple.{Tuple, Tuples}
-import main.scala.officework.ScalaUtils
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame

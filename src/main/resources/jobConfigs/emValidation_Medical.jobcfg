@@ -1,0 +1,11 @@
+#Description : EM Validation Job Configuration file
+#jobName : emValidation
+#
+#$HADOOP jar $JAR -job emValidation -clientId $clientId -input /user/swshrestha/$clientId/input/claims/Medical.csv -output /user/swshrestha/$clientId/Medical/ --recordType Medical --layout medicalLayout.csv
+#
+#--------------- Mandatory --------------------------
+inputLayoutFile     = /layouts/medicalLayout.csv
+outputLayoutFile    = medicalLayout.csv,duplicateReversalFlagsLayout.csv,selectedProcedureLayout.csv
+inputFile           = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/src/main/resources/data/Medical.csv
+outputDirectory     = /home/ramaharjan/Documents/testProjects/gitHubScala/scalaTest/data/EMMedical
+recordType          = Medical
